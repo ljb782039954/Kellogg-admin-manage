@@ -1,20 +1,21 @@
-import { useState, useRef } from 'react';
-import { ImageIcon, Eye, Upload, X } from 'lucide-react';
+import { useRef } from 'react';
+import { Upload, X, RefreshCw } from 'lucide-react';
 
 interface ImageInputProps {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
-  preview?: boolean;
+  aspectRatio?: 'square' | 'video' | 'banner' | 'auto';
+  className?: string;
 }
 
 export default function ImageInput({
   label,
   value,
   onChange,
-  preview = true,
+  aspectRatio = 'auto',
+  className = '',
 }: ImageInputProps) {
-  const [showPreview, setShowPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,20 +34,19 @@ export default function ImageInput({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // 根据宽高比设置容器样式
+  const aspectRatioClass = {
+    square: 'aspect-square',
+    video: 'aspect-video',
+    banner: 'aspect-[3/1]',
+    auto: 'min-h-[120px]',
+  }[aspectRatio];
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className={`space-y-2 ${className}`}>
+      {label && (
         <label className="block text-sm font-medium text-gray-700">{label}</label>
-        {value && (
-          <button
-            onClick={clearImage}
-            className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
-          >
-            <X className="w-3 h-3" />
-            清除
-          </button>
-        )}
-      </div>
+      )}
 
       {/* 隐藏的实际文件输入框 */}
       <input
@@ -57,53 +57,21 @@ export default function ImageInput({
         className="hidden"
       />
 
-      {/* 上传区域 */}
+      {/* 图片显示/上传区域 */}
       {!value ? (
+        // 无图片时：显示上传区域
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-full py-8 border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center gap-2 text-gray-500"
+          className={`w-full ${aspectRatioClass} border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center gap-2 text-gray-500`}
         >
           <Upload className="w-8 h-8" />
           <span className="text-sm font-medium">点击上传图片</span>
           <span className="text-xs text-gray-400">支持 JPG、PNG、GIF 等格式</span>
         </button>
       ) : (
-        <div className="flex gap-2">
-          <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-            <ImageIcon className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-600 truncate flex-1">
-              {value.startsWith('data:') ? '已上传图片' : value}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
-            title="重新上传"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline text-sm font-medium">更换</span>
-          </button>
-
-          {preview && (
-            <button
-              type="button"
-              onClick={() => setShowPreview(!showPreview)}
-              className={`px-4 py-3 rounded-xl transition-all flex items-center gap-2 shadow-sm ${
-                showPreview ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline text-sm font-medium">预览</span>
-            </button>
-          )}
-        </div>
-      )}
-
-      {showPreview && value && (
-        <div className="relative w-full h-48 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 mt-2 group">
+        // 有图片时：直接显示图片预览
+        <div className={`relative w-full ${aspectRatioClass} bg-gray-100 rounded-xl overflow-hidden border border-gray-200 group`}>
           <img
             src={value}
             alt="Preview"
@@ -112,6 +80,36 @@ export default function ImageInput({
               (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="3" y="3" width="18" height="18" rx="2" ry="2"/%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"/%3E%3Cpolyline points="21 15 16 10 5 21"/%3E%3C/svg%3E';
             }}
           />
+
+          {/* 悬浮操作按钮 */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+            {/* 更换图片 */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+              title="更换图片"
+            >
+              <RefreshCw className="w-5 h-5 text-gray-700" />
+            </button>
+
+            {/* 删除图片 */}
+            <button
+              type="button"
+              onClick={clearImage}
+              className="p-3 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
+              title="删除图片"
+            >
+              <X className="w-5 h-5 text-red-500" />
+            </button>
+          </div>
+
+          {/* 底部提示 */}
+          <div className="absolute bottom-2 left-2 right-2 text-center">
+            <span className="text-xs text-white bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+              悬浮显示操作按钮
+            </span>
+          </div>
         </div>
       )}
     </div>

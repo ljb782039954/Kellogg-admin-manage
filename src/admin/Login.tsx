@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
-import { adminCredentials } from '../config/exampleContent';
+import { adminCredentials } from '../config/placeholder';
 import siteSettings from '../config/siteSettings.json';
 
 export default function Login() {

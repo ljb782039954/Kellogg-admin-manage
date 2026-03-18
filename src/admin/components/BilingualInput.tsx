@@ -1,7 +1,7 @@
 import type { Translation } from '../../types';
 
 interface BilingualInputProps {
-  label: string;
+  label?: string;
   value: Translation;
   onChange: (value: Translation) => void;
   placeholder?: { zh?: string; en?: string };
@@ -19,7 +19,7 @@ export default function BilingualInput({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Chinese Input */}
         <div className="relative">

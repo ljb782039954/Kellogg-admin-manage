@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Save, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { adminCredentials as defaultCreds } from '../config/exampleContent';
+import { adminCredentials as defaultCreds } from '../config/placeholder';
 
 export default function AccountSettings() {
   const [username, setUsername] = useState(() => {
@@ -25,11 +25,11 @@ export default function AccountSettings() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     // Verify current password
     const savedCreds = localStorage.getItem('admin_credentials');
     const actualCreds = savedCreds ? JSON.parse(savedCreds) : defaultCreds;
-    
+
     if (currentPassword !== actualCreds.password) {
       setError('当前密码不正确');
       return;

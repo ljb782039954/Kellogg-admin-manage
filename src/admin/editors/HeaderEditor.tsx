@@ -1,13 +1,42 @@
-import { useState } from 'react';
+// Header 组件管理编辑器
+
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, GripVertical, Save } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Save, AlertTriangle } from 'lucide-react';
 import { useContent } from '../../context/ContentContext';
-import type { Translation } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import BilingualInput from '../components/BilingualInput';
+import LinkSelector, { getAllPages, checkPageExists } from '../components/LinkSelector';
+import type { NavLink, HeaderContent, Translation } from '../../types';
 
 export default function HeaderEditor() {
   const { content, updateHeader } = useContent();
-  const [localHeader, setLocalHeader] = useState(content.header);
+  const [localHeader, setLocalHeader] = useState<HeaderContent>(content.header);
   const [saved, setSaved] = useState(false);
+  const [hasDeletedPages, setHasDeletedPages] = useState(false);
+
+  // 检查是否有已删除的页面链接
+  useEffect(() => {
+    const pages = getAllPages();
+    const hasDeleted = localHeader.navItems.some(
+      (item) => item.linkType === 'internal' && item.href && !checkPageExists(item.href, pages)
+    );
+    setHasDeletedPages(hasDeleted);
+  }, [localHeader.navItems]);
+
+  // 将旧格式转换为新格式
+  useEffect(() => {
+    const needsConversion = localHeader.navItems.some((item) => !('linkType' in item));
+    if (needsConversion) {
+      const convertedItems = localHeader.navItems.map((item) => ({
+        ...item,
+        linkType: (item.href?.startsWith('http') ? 'external' : 'internal') as 'internal' | 'external',
+      }));
+      setLocalHeader({ ...localHeader, navItems: convertedItems });
+    }
+  }, []);
 
   const handleSave = () => {
     updateHeader(localHeader);
@@ -16,22 +45,26 @@ export default function HeaderEditor() {
   };
 
   const addNavItem = () => {
+    const newItem: NavLink = {
+      name: { zh: '新菜单', en: 'New Menu' },
+      linkType: 'internal',
+      href: '',
+    };
     setLocalHeader({
       ...localHeader,
-      navItems: [
-        ...localHeader.navItems,
-        { name: { zh: '新菜单', en: 'New Menu' }, href: '#' },
-      ],
+      navItems: [...localHeader.navItems, newItem],
     });
   };
 
-  const updateNavItem = (index: number, field: 'name' | 'href', value: Translation | string) => {
+  const updateNavItemName = (index: number, value: Translation) => {
     const newNavItems = [...localHeader.navItems];
-    if (field === 'name') {
-      newNavItems[index].name = value as Translation;
-    } else {
-      newNavItems[index].href = value as string;
-    }
+    newNavItems[index] = { ...newNavItems[index], name: value };
+    setLocalHeader({ ...localHeader, navItems: newNavItems });
+  };
+
+  const updateNavItemLink = (index: number, value: NavLink) => {
+    const newNavItems = [...localHeader.navItems];
+    newNavItems[index] = { ...newNavItems[index], ...value };
     setLocalHeader({ ...localHeader, navItems: newNavItems });
   };
 
@@ -47,16 +80,13 @@ export default function HeaderEditor() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Header 导航</h1>
-          <p className="text-gray-500 mt-1">编辑网站Logo和导航菜单</p>
+          <h1 className="text-2xl font-bold text-gray-800">Header 导航管理</h1>
+          <p className="text-gray-500 mt-1">编辑网站顶部导航菜单</p>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-        >
-          <Save className="w-4 h-4" />
+        <Button onClick={handleSave}>
+          <Save className="w-4 h-4 mr-2" />
           保存更改
-        </button>
+        </Button>
       </div>
 
       {saved && (
@@ -69,83 +99,95 @@ export default function HeaderEditor() {
         </motion.div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-        <div className="p-4 bg-blue-50 text-blue-700 rounded-lg flex items-center gap-2 mb-6 text-sm">
-          <span className="w-2 h-2 bg-blue-500 rounded-full" />
-          品牌 Logo 文字现已由 <code className="bg-blue-100 px-1 rounded">siteSettings.json</code> 统一管理。
+      {/* 页面删除警告 */}
+      {hasDeletedPages && (
+        <div className="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 px-4 py-3 rounded-lg">
+          <AlertTriangle className="w-5 h-5" />
+          <span>部分导航链接指向的页面已被删除，请更新相关链接。</span>
         </div>
+      )}
 
-        {/* Navigation Items */}
-        <div className="space-y-4">
+      {/* 提示信息 */}
+      <div className="p-4 bg-blue-50 text-blue-700 rounded-lg flex items-center gap-2 text-sm">
+        <span className="w-2 h-2 bg-blue-500 rounded-full" />
+        品牌 Logo 和名称由「公司信息管理」统一配置。
+      </div>
+
+      {/* 导航菜单列表 */}
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">导航菜单</label>
-            <button
-              onClick={addNavItem}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
+            <div>
+              <CardTitle>导航菜单</CardTitle>
+              <CardDescription>管理顶部导航栏的菜单项</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={addNavItem}>
+              <Plus className="w-4 h-4 mr-1" />
               添加菜单
-            </button>
+            </Button>
           </div>
-
-          <div className="space-y-3">
-            {localHeader.navItems.map((item, index) => (
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {localHeader.navItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>暂无导航菜单</p>
+              <p className="text-sm mt-1">点击「添加菜单」开始配置</p>
+            </div>
+          ) : (
+            localHeader.navItems.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg"
+                className={`p-4 rounded-lg border ${
+                  item.pageDeleted
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-200 bg-gray-50'
+                }`}
               >
-                <GripVertical className="w-5 h-5 text-gray-400 mt-3" />
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {/* Chinese Name */}
-                  <div className="relative">
-                    <span className="absolute left-3 top-3 text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded">
-                      中文
-                    </span>
-                    <input
-                      type="text"
-                      value={item.name.zh}
-                      onChange={(e) =>
-                        updateNavItem(index, 'name', { ...item.name, zh: e.target.value })
-                      }
-                      className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
+                <div className="flex items-start gap-3">
+                  <GripVertical className="w-5 h-5 text-gray-400 mt-2 cursor-move" />
+
+                  <div className="flex-1 space-y-4">
+                    {/* 菜单名称 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 w-16">菜单名称</span>
+                      {item.pageDeleted && (
+                        <Badge variant="destructive" className="text-xs">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          链接失效
+                        </Badge>
+                      )}
+                    </div>
+                    <BilingualInput
+                      value={item.name}
+                      onChange={(value) => updateNavItemName(index, value)}
+                      placeholder={{ zh: '菜单中文名', en: 'Menu English name' }}
                     />
+
+                    {/* 链接配置 */}
+                    <div className="pt-2 border-t">
+                      <LinkSelector
+                        value={item}
+                        onChange={(value) => updateNavItemLink(index, value)}
+                      />
+                    </div>
                   </div>
-                  {/* English Name */}
-                  <div className="relative">
-                    <span className="absolute left-3 top-3 text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded">
-                      EN
-                    </span>
-                    <input
-                      type="text"
-                      value={item.name.en}
-                      onChange={(e) =>
-                        updateNavItem(index, 'name', { ...item.name, en: e.target.value })
-                      }
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
-                    />
-                  </div>
-                  {/* Link */}
-                  <input
-                    type="text"
-                    value={item.href}
-                    onChange={(e) => updateNavItem(index, 'href', e.target.value)}
-                    placeholder="链接地址，如 #products"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
-                  />
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeNavItem(index)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <button
-                  onClick={() => removeNavItem(index)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

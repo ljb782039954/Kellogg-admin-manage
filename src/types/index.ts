@@ -7,10 +7,42 @@ export interface Translation {
   en: string;
 }
 
+// 公司信息
+export interface CompanyInfo {
+  name: Translation;
+  logo: string;
+  description: Translation;
+  contact: {
+    phone: string;
+    email: string;
+    address: Translation;
+  };
+  socialMedia: {
+    wechat?: string;
+    weibo?: string;
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+    youtube?: string;
+  };
+}
+
+// 导航链接类型
+export type LinkType = 'internal' | 'external';
+
+// 导航链接项
+export interface NavLink {
+  name: Translation;
+  linkType: LinkType;
+  href: string;        // 内部链接为 pageId，外部链接为完整 URL
+  pageDeleted?: boolean; // 标记页面是否已被删除
+}
+
 // Header content
 export interface HeaderContent {
   logoText: Translation;
-  navItems: { name: Translation; href: string }[];
+  navItems: NavLink[];
 }
 
 // Carousel slide
@@ -116,10 +148,18 @@ export interface FAQContent {
   items: FAQItem[];
 }
 
+// Footer link item
+export interface FooterLink {
+  name: Translation;
+  linkType: LinkType;
+  href: string;
+  pageDeleted?: boolean;
+}
+
 // Footer links
 export interface FooterLinkGroup {
   title: Translation;
-  links: { name: Translation; href: string }[];
+  links: FooterLink[];
 }
 
 // Footer content

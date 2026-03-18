@@ -5,13 +5,13 @@ import {
   Globe,
   LogOut,
   ChevronRight,
-  Home,
   ShoppingBag,
-  Package,
-  Factory,
-  HelpCircle,
-  // Footprints,
   Settings,
+  FileText,
+  Building2,
+  PanelTop,
+  PanelBottom,
+  Layers,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import siteSettings from '../config/siteSettings.json';
@@ -29,7 +29,32 @@ const menuItems: MenuItem[] = [
     name: '概览',
     icon: LayoutDashboard,
   },
-    {
+  {
+    path: '/company',
+    name: '公司信息管理',
+    icon: Building2,
+  },
+  {
+    path: '/header',
+    name: 'Header 组件管理',
+    icon: PanelTop,
+  },
+  {
+    path: '/footer',
+    name: 'Footer 组件管理',
+    icon: PanelBottom,
+  },
+  {
+    path: '/components',
+    name: '预定义组件',
+    icon: Layers,
+  },
+  {
+    path: '/pages',
+    name: '页面管理',
+    icon: FileText,
+  },
+  {
     name: '商品管理',
     icon: ShoppingBag,
     children: [
@@ -37,46 +62,6 @@ const menuItems: MenuItem[] = [
       { path: '/categories', name: '商品分类' },
     ],
   },
-  {
-    name: '首页管理',
-    icon: Home,
-    children: [
-      // { path: '/header', name: 'Header 导航' }, // 暂时禁用
-      { path: '/carousel', name: '轮播图' },
-      { path: '/brand-values', name: '品牌价值' },
-      { path: '/statistics', name: '统计数据' },
-      { path: '/testimonials', name: '客户评价' },
-      { path: '/featured-products', name: '精选产品' },
-    ],
-  },
-
-  // new
-    {
-    path: '/all-products',
-    name: '全部商品页管理',
-    icon: Package,
-  },
-  {
-    path: '/new-arrivals',
-    name: '新品页管理',
-    icon: Package,
-  },
-  {
-    path: '/factory',
-    name: '工厂页管理',
-    icon: Factory,
-  },
-  {
-    path: '/faq',
-    name: 'FAQ页管理',
-    icon: HelpCircle,
-  },
-  // 暂时禁用
-  // {
-  //   path: '/footer',
-  //   name: 'Footer 页脚',
-  //   icon: Footprints,
-  // },
   {
     path: '/account',
     name: '账户设置',
@@ -135,7 +120,7 @@ export default function Dashboard() {
                 <span className="flex-1">{item.name}</span>
                 {item.children && <ChevronRight className="w-4 h-4" />}
               </NavLink>
-              
+
               {/* Submenu */}
               {item.children && (
                 <div className="ml-4 mt-1 space-y-1">

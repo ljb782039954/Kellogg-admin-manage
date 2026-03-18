@@ -1,0 +1,134 @@
+// 文本区块属性编辑器
+
+import { type TextSectionBlockProps } from '@/types/pageSchema';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import BilingualInput from '../../components/BilingualInput';
+
+interface Props {
+  props: TextSectionBlockProps;
+  onUpdate: (props: TextSectionBlockProps) => void;
+}
+
+export function TextSectionPropsEditor({ props, onUpdate }: Props) {
+  const handleChange = <K extends keyof TextSectionBlockProps>(
+    key: K,
+    value: TextSectionBlockProps[K]
+  ) => {
+    onUpdate({ ...props, [key]: value });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* 标题 */}
+      <div className="space-y-2">
+        <Label>标题</Label>
+        <BilingualInput
+          value={props.title || { zh: '', en: '' }}
+          onChange={(value) => handleChange('title', value)}
+          placeholder={{ zh: '请输入中文标题', en: 'Enter English title' }}
+        />
+      </div>
+
+      {/* 内容 */}
+      <div className="space-y-2">
+        <Label>内容（中文）</Label>
+        <Textarea
+          value={props.content?.zh || ''}
+          onChange={(e) =>
+            handleChange('content', {
+              ...props.content,
+              zh: e.target.value,
+              en: props.content?.en || '',
+            })
+          }
+          placeholder="请输入中文内容"
+          rows={4}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>内容（英文）</Label>
+        <Textarea
+          value={props.content?.en || ''}
+          onChange={(e) =>
+            handleChange('content', {
+              ...props.content,
+              zh: props.content?.zh || '',
+              en: e.target.value,
+            })
+          }
+          placeholder="Enter English content"
+          rows={4}
+        />
+      </div>
+
+      {/* 对齐方式 */}
+      <div className="space-y-2">
+        <Label>对齐方式</Label>
+        <Select
+          value={props.alignment || 'center'}
+          onValueChange={(value: 'left' | 'center' | 'right') =>
+            handleChange('alignment', value)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="left">左对齐</SelectItem>
+            <SelectItem value="center">居中</SelectItem>
+            <SelectItem value="right">右对齐</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 上下间距 */}
+      <div className="space-y-2">
+        <Label>上下间距</Label>
+        <Select
+          value={props.paddingY || 'medium'}
+          onValueChange={(value: 'small' | 'medium' | 'large') =>
+            handleChange('paddingY', value)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="small">小</SelectItem>
+            <SelectItem value="medium">中</SelectItem>
+            <SelectItem value="large">大</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 背景色 */}
+      <div className="space-y-2">
+        <Label>背景颜色</Label>
+        <div className="flex gap-2">
+          <input
+            type="color"
+            value={props.backgroundColor || '#ffffff'}
+            onChange={(e) => handleChange('backgroundColor', e.target.value)}
+            className="w-10 h-10 rounded border cursor-pointer"
+          />
+          <input
+            type="text"
+            value={props.backgroundColor || ''}
+            onChange={(e) => handleChange('backgroundColor', e.target.value)}
+            placeholder="#ffffff"
+            className="flex-1 px-3 py-2 border rounded-md text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

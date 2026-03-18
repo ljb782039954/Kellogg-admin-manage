@@ -403,7 +403,6 @@ export default function ProductsEditor() {
                                   nextImages[imgIdx] = val;
                                   updateProduct(product.id, 'images', nextImages);
                                 }}
-                                preview={false}
                               />
                             ))}
                           </div>

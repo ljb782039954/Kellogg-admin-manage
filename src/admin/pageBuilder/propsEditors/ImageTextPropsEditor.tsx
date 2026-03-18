@@ -1,0 +1,92 @@
+// 图文组件属性编辑器
+
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import BilingualInput from '@/admin/components/BilingualInput';
+import ImageInput from '@/admin/components/ImageInput';
+
+interface ImageTextPropsEditorProps {
+  props: {
+    title?: { zh: string; en: string };
+    content?: { zh: string; en: string };
+    image?: string;
+    imagePosition?: 'left' | 'right';
+    buttonText?: { zh: string; en: string };
+    buttonLink?: string;
+  };
+  onUpdate: (props: Record<string, unknown>) => void;
+}
+
+export function ImageTextPropsEditor({ props, onUpdate }: ImageTextPropsEditorProps) {
+  return (
+    <div className="space-y-6">
+      {/* 图片设置 */}
+      <div className="space-y-3 pb-4 border-b">
+        <h4 className="font-medium text-sm text-gray-700">图片设置</h4>
+        <ImageInput
+          label="图片"
+          value={props.image || ''}
+          onChange={(val) => onUpdate({ ...props, image: val })}
+          aspectRatio="video"
+        />
+        <div className="space-y-2">
+          <Label>图片位置</Label>
+          <Select
+            value={props.imagePosition || 'left'}
+            onValueChange={(val) => onUpdate({ ...props, imagePosition: val })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">左侧</SelectItem>
+              <SelectItem value="right">右侧</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* 文本内容 */}
+      <div className="space-y-3 pb-4 border-b">
+        <h4 className="font-medium text-sm text-gray-700">文本内容</h4>
+        <BilingualInput
+          label="标题"
+          value={props.title || { zh: '', en: '' }}
+          onChange={(val) => onUpdate({ ...props, title: val })}
+        />
+        <BilingualInput
+          label="内容"
+          value={props.content || { zh: '', en: '' }}
+          onChange={(val) => onUpdate({ ...props, content: val })}
+          multiline
+        />
+      </div>
+
+      {/* 按钮设置 */}
+      <div className="space-y-3">
+        <h4 className="font-medium text-sm text-gray-700">按钮设置（可选）</h4>
+        <BilingualInput
+          label="按钮文字"
+          value={props.buttonText || { zh: '', en: '' }}
+          onChange={(val) => onUpdate({ ...props, buttonText: val })}
+        />
+        <div className="space-y-2">
+          <Label>按钮链接</Label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+            placeholder="输入链接地址，如 /products"
+            value={props.buttonLink || ''}
+            onChange={(e) => onUpdate({ ...props, buttonLink: e.target.value })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
