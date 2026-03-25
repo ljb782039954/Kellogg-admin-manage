@@ -10,18 +10,7 @@ import {
 } from '@/components/ui/select';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-
-interface ImageTextPropsEditorProps {
-  props: {
-    title?: { zh: string; en: string };
-    content?: { zh: string; en: string };
-    image?: string;
-    imagePosition?: 'left' | 'right';
-    buttonText?: { zh: string; en: string };
-    buttonLink?: string;
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
+import type { ImageTextPropsEditorProps } from '@/types/editor';
 
 export function ImageTextPropsEditor({ props, onUpdate }: ImageTextPropsEditorProps) {
   return (
@@ -39,7 +28,7 @@ export function ImageTextPropsEditor({ props, onUpdate }: ImageTextPropsEditorPr
           <Label>图片位置</Label>
           <Select
             value={props.imagePosition || 'left'}
-            onValueChange={(val) => onUpdate({ ...props, imagePosition: val })}
+            onValueChange={(val: "left" | "right") => onUpdate({ ...props, imagePosition: val })}
           >
             <SelectTrigger>
               <SelectValue />

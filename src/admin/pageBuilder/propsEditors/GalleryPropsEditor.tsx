@@ -1,51 +1,38 @@
 // 图片画廊组件属性编辑器
 
-import { Label } from '@/components/ui/label';
+// import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-
-interface GalleryPropsEditorProps {
-  props: {
-    title?: { zh: string; en: string };
-    subtitle?: { zh: string; en: string };
-    images?: Array<{
-      image: string;
-      caption?: { zh: string; en: string };
-    }>;
-    layout?: 'grid' | 'masonry';
-    columns?: 2 | 3 | 4;
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
+import type { GalleryPropsEditorProps } from '@/types/editor';
 
 export function GalleryPropsEditor({ props, onUpdate }: GalleryPropsEditorProps) {
-  const images = props.images || [];
+  const items = props.items || [];
 
-  const addImage = () => {
+  const addItem = () => {
     onUpdate({
       ...props,
-      images: [...images, { image: '', caption: { zh: '', en: '' } }],
+      items: [...items, { src: '', caption: { zh: '', en: '' } }],
     });
   };
 
-  const updateImage = (index: number, field: string, value: unknown) => {
-    const newImages = [...images];
-    newImages[index] = { ...newImages[index], [field]: value };
-    onUpdate({ ...props, images: newImages });
+  const updateItem = (index: number, field: string, value: unknown) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onUpdate({ ...props, items: newItems });
   };
 
-  const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    onUpdate({ ...props, images: newImages });
+  const removeItem = (index: number) => {
+    const newItems = items.filter((_, i) => i !== index);
+    onUpdate({ ...props, items: newItems });
   };
 
   return (
@@ -66,7 +53,7 @@ export function GalleryPropsEditor({ props, onUpdate }: GalleryPropsEditorProps)
       </div>
 
       {/* 布局设置 */}
-      <div className="space-y-3 pb-4 border-b">
+      {/* <div className="space-y-3 pb-4 border-b">
         <h4 className="font-medium text-sm text-gray-700">布局设置</h4>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -101,26 +88,26 @@ export function GalleryPropsEditor({ props, onUpdate }: GalleryPropsEditorProps)
             </Select>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* 图片列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-gray-700">图片列表</h4>
-          <Button size="sm" variant="outline" onClick={addImage}>
+          <h4 className="font-medium text-sm text-gray-700">图片列表 (Items)</h4>
+          <Button size="sm" variant="outline" onClick={addItem}>
             <Plus className="w-4 h-4 mr-1" />
-            添加图片
+            添加 (Add)
           </Button>
         </div>
 
-        {images.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无图片</p>
             <p className="text-xs mt-1">点击上方按钮添加</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {images.map((img, index) => (
+            {items.map((item, index) => (
               <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">图片 {index + 1}</span>
@@ -128,20 +115,20 @@ export function GalleryPropsEditor({ props, onUpdate }: GalleryPropsEditorProps)
                     size="sm"
                     variant="ghost"
                     className="text-red-500 hover:text-red-600 h-6 w-6 p-0"
-                    onClick={() => removeImage(index)}
+                    onClick={() => removeItem(index)}
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
                 <ImageInput
-                  value={img.image}
-                  onChange={(val) => updateImage(index, 'image', val)}
+                  value={item.src}
+                  onChange={(val) => updateItem(index, 'src', val)}
                   aspectRatio="square"
                 />
                 <BilingualInput
                   label="说明文字"
-                  value={img.caption || { zh: '', en: '' }}
-                  onChange={(val) => updateImage(index, 'caption', val)}
+                  value={item.caption || { zh: '', en: '' }}
+                  onChange={(val) => updateItem(index, 'caption', val)}
                 />
               </div>
             ))}

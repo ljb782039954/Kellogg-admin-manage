@@ -1,74 +1,69 @@
 // 客户评价组件属性编辑器（轻量版）
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useContent } from '@/context/ContentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import type { Testimonial } from '@/types';
+import { type Testimonial, type TestimonialsPropsEditorProps } from '@/types';
 
-interface TestimonialsPropsEditorProps {
-  props: {
-    maxItems?: number;
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
 
 export function TestimonialsPropsEditor({ props, onUpdate }: TestimonialsPropsEditorProps) {
-  const { content, updateTestimonials } = useContent();
-  const [localData, setLocalData] = useState(content.home.testimonials);
+  const [localData, setLocalData] = useState<Testimonial[]>(props.items || []);
 
-  useEffect(() => {
-    setLocalData(content.home.testimonials);
-  }, [content.home.testimonials]);
-
-  const saveData = (data: typeof localData) => {
-    setLocalData(data);
-    updateTestimonials(data);
+  const saveItems = (items: Testimonial[]) => {
+    setLocalData(items);
+    onUpdate({ ...props, items });
   };
 
   const addItem = () => {
-    const newId = Math.max(...localData.items.map((i) => i.id), 0) + 1;
-    saveData({
+    const newId = Math.max(0, ...localData.map((i) => i.id)) + 1;
+    saveItems([
       ...localData,
-      items: [
-        ...localData.items,
-        {
-          id: newId,
-          name: { zh: '客户名称', en: 'Customer Name' },
-          role: { zh: '职位', en: 'Role' },
-          content: { zh: '评价内容', en: 'Review content' },
-          avatar: '',
-        },
-      ],
-    });
+      {
+        id: newId,
+        name: { zh: '客户名称', en: 'Customer Name' },
+        role: { zh: '职位', en: 'Role' },
+        content: { zh: '评价内容', en: 'Review content' },
+        avatar: '',
+      },
+    ]);
   };
 
   const updateItem = <K extends keyof Testimonial>(id: number, field: K, value: Testimonial[K]) => {
-    saveData({
-      ...localData,
-      items: localData.items.map((item) =>
+    saveItems(
+      localData.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
-      ),
-    });
+      )
+    );
   };
 
   const removeItem = (id: number) => {
-    saveData({
-      ...localData,
-      items: localData.items.filter((item) => item.id !== id),
-    });
+    saveItems(localData.filter((item) => item.id !== id));
   };
 
   return (
     <div className="space-y-6">
+      {/* 标题设置 */}
+      <div className="space-y-3 pb-4 border-b">
+        <h4 className="font-medium text-sm text-gray-700">标题设置 (Heading)</h4>
+        <BilingualInput
+          label="标题"
+          value={props.title || { zh: '客户好评', en: 'Testimonials' }}
+          onChange={(val) => onUpdate({ ...props, title: val })}
+        />
+        <BilingualInput
+          label="副标题"
+          value={props.subtitle || { zh: '听听我们的客户怎么说', en: 'What our customers say' }}
+          onChange={(val) => onUpdate({ ...props, subtitle: val })}
+        />
+      </div>
+
       {/* 显示设置 */}
       <div className="space-y-4 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">显示设置</h4>
+        <h4 className="font-medium text-sm text-gray-700">显示设置 (Settings)</h4>
         <div className="space-y-2">
           <Label>显示数量</Label>
           <Input
@@ -81,43 +76,28 @@ export function TestimonialsPropsEditor({ props, onUpdate }: TestimonialsPropsEd
         </div>
       </div>
 
-      {/* 区块标题 */}
-      <div className="space-y-3 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">区块标题</h4>
-        <BilingualInput
-          label="主标题"
-          value={localData.title}
-          onChange={(val) => saveData({ ...localData, title: val })}
-        />
-        <BilingualInput
-          label="副标题"
-          value={localData.subtitle}
-          onChange={(val) => saveData({ ...localData, subtitle: val })}
-        />
-      </div>
-
       {/* 评价列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-gray-700">客户评价列表</h4>
+          <h4 className="font-medium text-sm text-gray-700">客户评价列表 (Items)</h4>
           <Button variant="outline" size="sm" onClick={addItem}>
             <Plus className="w-4 h-4 mr-1" />
-            添加
+            添加 (Add)
           </Button>
         </div>
 
-        {localData.items.length === 0 ? (
+        {localData.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无客户评价</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {localData.items.map((item, index) => (
+            {localData.map((item, index) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="border rounded-lg overflow-hidden"
+                className="border rounded-lg overflow-hidden bg-white"
               >
                 <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
                   <div className="flex items-center gap-2">

@@ -12,48 +12,28 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import BilingualInput from '@/admin/components/BilingualInput';
-
-// 常用图标列表
-const commonIcons = [
-  'Truck', 'RotateCcw', 'Shield', 'Headphones', 'CreditCard', 'Gift',
-  'Star', 'Heart', 'Check', 'Award', 'Zap', 'Clock',
-  'ThumbsUp', 'Lock', 'Globe', 'Users', 'Package', 'Sparkles',
-];
-
-interface FeatureListPropsEditorProps {
-  props: {
-    title?: { zh: string; en: string };
-    subtitle?: { zh: string; en: string };
-    features?: Array<{
-      icon: string;
-      title: { zh: string; en: string };
-      description: { zh: string; en: string };
-    }>;
-    layout?: 'grid' | 'list';
-    columns?: 2 | 3 | 4;
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
+import { commonFeatureIcons } from '@/types/editor';
+import type { FeatureListPropsEditorProps } from '@/types/editor';
 
 export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEditorProps) {
-  const features = props.features || [];
+  const items = props.items || [];
 
-  const addFeature = () => {
+  const addItems = () => {
     onUpdate({
       ...props,
-      features: [...features, { icon: 'Star', title: { zh: '', en: '' }, description: { zh: '', en: '' } }],
+      items: [...items, { icon: 'Star', title: { zh: '', en: '' }, description: { zh: '', en: '' } }],
     });
   };
 
-  const updateFeature = (index: number, field: string, value: unknown) => {
-    const newFeatures = [...features];
-    newFeatures[index] = { ...newFeatures[index], [field]: value };
-    onUpdate({ ...props, features: newFeatures });
+  const updateItems = (index: number, field: string, value: unknown) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onUpdate({ ...props, items: newItems });
   };
 
-  const removeFeature = (index: number) => {
-    const newFeatures = features.filter((_, i) => i !== index);
-    onUpdate({ ...props, features: newFeatures });
+  const removeItems = (index: number) => {
+    const newItems = items.filter((_, i) => i !== index);
+    onUpdate({ ...props, items: newItems });
   };
 
   return (
@@ -74,7 +54,7 @@ export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEdit
       </div>
 
       {/* 布局设置 */}
-      <div className="space-y-3 pb-4 border-b">
+      {/* <div className="space-y-3 pb-4 border-b">
         <h4 className="font-medium text-sm text-gray-700">布局设置</h4>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -111,26 +91,26 @@ export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEdit
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* 特性列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="font-medium text-sm text-gray-700">特性项目</h4>
-          <Button size="sm" variant="outline" onClick={addFeature}>
+          <Button size="sm" variant="outline" onClick={addItems}>
             <Plus className="w-4 h-4 mr-1" />
             添加
           </Button>
         </div>
 
-        {features.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无特性项目</p>
             <p className="text-xs mt-1">点击上方按钮添加</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {features.map((feature, index) => {
+            {items.map((feature, index) => {
               const SelectedIcon = (LucideIcons as any)[feature.icon] || LucideIcons.Star;
               return (
                 <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
@@ -143,7 +123,7 @@ export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEdit
                       size="sm"
                       variant="ghost"
                       className="text-red-500 hover:text-red-600"
-                      onClick={() => removeFeature(index)}
+                      onClick={() => removeItems(index)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -153,13 +133,13 @@ export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEdit
                     <Label>图标</Label>
                     <Select
                       value={feature.icon}
-                      onValueChange={(val) => updateFeature(index, 'icon', val)}
+                      onValueChange={(val) => updateItems(index, 'icon', val)}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {commonIcons.map((iconName) => {
+                        {commonFeatureIcons.map((iconName) => {
                           const Icon = (LucideIcons as any)[iconName];
                           return (
                             <SelectItem key={iconName} value={iconName}>
@@ -177,12 +157,12 @@ export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEdit
                   <BilingualInput
                     label="标题"
                     value={feature.title}
-                    onChange={(val) => updateFeature(index, 'title', val)}
+                    onChange={(val) => updateItems(index, 'title', val)}
                   />
                   <BilingualInput
                     label="描述"
                     value={feature.description}
-                    onChange={(val) => updateFeature(index, 'description', val)}
+                    onChange={(val) => updateItems(index, 'description', val)}
                     multiline
                   />
                 </div>

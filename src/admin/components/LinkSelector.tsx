@@ -1,5 +1,4 @@
 // 链接选择组件 - 支持内部页面链接和外部链接
-
 import { useState, useEffect } from 'react';
 import { AlertTriangle, ExternalLink, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,92 +11,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import type { LinkType, NavLink, Translation } from '@/types';
-import type { PageSchema } from '@/types/pageSchema';
-import { fixedPageDefaults } from '@/config/defaultPageSchemas';
-
-// localStorage 键名
-const PAGES_INDEX_KEY = 'pages_index';
-const getPageStorageKey = (pageId: string) => `page_schema_${pageId}`;
+import type { LinkType, NavLink, Translation, } from '@/types';
+import { useContent } from '@/context/ContentContext';
 
 // 页面选项
 interface PageOption {
   pageId: string;
-  slug: string;
+  path: string;
   title: Translation;
   isFixed: boolean;
-}
-
-// 获取所有可用页面
-function getAllPages(): PageOption[] {
-  const pages: PageOption[] = [];
-
-  // 1. 加载固定页面
-  Object.keys(fixedPageDefaults).forEach((pageId) => {
-    const defaults = fixedPageDefaults[pageId];
-    const stored = localStorage.getItem(getPageStorageKey(pageId));
-    if (stored) {
-      try {
-        const schema: PageSchema = JSON.parse(stored);
-        pages.push({
-          pageId: schema.pageId,
-          slug: schema.slug,
-          title: schema.title,
-          isFixed: true,
-        });
-      } catch {
-        pages.push({
-          pageId: defaults.pageId,
-          slug: defaults.slug,
-          title: defaults.title,
-          isFixed: true,
-        });
-      }
-    } else {
-      pages.push({
-        pageId: defaults.pageId,
-        slug: defaults.slug,
-        title: defaults.title,
-        isFixed: true,
-      });
-    }
-  });
-
-  // 2. 加载动态页面
-  const pagesIndex = localStorage.getItem(PAGES_INDEX_KEY);
-  if (pagesIndex) {
-    try {
-      const dynamicPageIds: string[] = JSON.parse(pagesIndex);
-      dynamicPageIds.forEach((pageId) => {
-        if (!fixedPageDefaults[pageId]) {
-          const stored = localStorage.getItem(getPageStorageKey(pageId));
-          if (stored) {
-            try {
-              const schema: PageSchema = JSON.parse(stored);
-              pages.push({
-                pageId: schema.pageId,
-                slug: schema.slug,
-                title: schema.title,
-                isFixed: false,
-              });
-            } catch {
-              // 忽略解析失败的页面
-            }
-          }
-        }
-      });
-    } catch {
-      // 忽略索引解析失败
-    }
-  }
-
-  return pages;
-}
-
-// 检查页面是否存在
-function checkPageExists(href: string, pages: PageOption[]): boolean {
-  // 内部链接格式为 pageId 或 slug
-  return pages.some((p) => p.pageId === href || p.slug === href);
 }
 
 interface LinkSelectorProps {
@@ -106,23 +28,31 @@ interface LinkSelectorProps {
 }
 
 export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
+  const { content } = useContent();
   const [pages, setPages] = useState<PageOption[]>([]);
   const [pageDeleted, setPageDeleted] = useState(false);
 
   // 加载页面列表
   useEffect(() => {
-    const loadedPages = getAllPages();
+    // 从 content.pages 中加载所有页面
+    const loadedPages: PageOption[] = content.pages.map(p => ({
+      pageId: p.id,
+      path: p.path,
+      title: p.title,
+      isFixed: p.isFixed,
+    }));
+
     setPages(loadedPages);
 
     // 检查当前链接的页面是否已被删除
     if (value.linkType === 'internal' && value.href) {
-      const exists = checkPageExists(value.href, loadedPages);
+      const exists = loadedPages.some(p => p.pageId === value.href || p.path === value.href);
       setPageDeleted(!exists);
       if (!exists && !value.pageDeleted) {
         onChange({ ...value, pageDeleted: true });
       }
     }
-  }, [value.href, value.linkType]);
+  }, [value.href, value.linkType, content.pages]);
 
   // 更新链接类型
   const handleTypeChange = (type: LinkType) => {
@@ -140,7 +70,7 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
     const page = pages.find((p) => p.pageId === pageId);
     onChange({
       ...value,
-      href: page?.slug || pageId,
+      href: page?.path || pageId,
       pageDeleted: false,
     });
     setPageDeleted(false);
@@ -159,7 +89,7 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
     <div className="space-y-3">
       {/* 链接类型选择 */}
       <div className="space-y-2">
-        <Label>链接类型</Label>
+        <Label className="text-sm">链接类型 (Type)</Label>
         <Select value={value.linkType} onValueChange={(v) => handleTypeChange(v as LinkType)}>
           <SelectTrigger>
             <SelectValue />
@@ -168,13 +98,13 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
             <SelectItem value="internal">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                内部页面
+                内部页面 (Page)
               </div>
             </SelectItem>
             <SelectItem value="external">
               <div className="flex items-center gap-2">
                 <ExternalLink className="w-4 h-4" />
-                外部链接
+                外部链接 (URL)
               </div>
             </SelectItem>
           </SelectContent>
@@ -184,9 +114,9 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
       {/* 链接内容 */}
       {value.linkType === 'internal' ? (
         <div className="space-y-2">
-          <Label>选择页面</Label>
+          <Label className="text-sm">选择内部页面 (Destination)</Label>
           <Select
-            value={pages.find((p) => p.slug === value.href)?.pageId || value.href || ''}
+            value={pages.find((p) => p.path === value.href)?.pageId || value.href || ''}
             onValueChange={handlePageChange}
           >
             <SelectTrigger className={pageDeleted ? 'border-red-500' : ''}>
@@ -197,9 +127,9 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
                 <SelectItem key={page.pageId} value={page.pageId}>
                   <div className="flex items-center gap-2">
                     <span>{page.title.zh}</span>
-                    <span className="text-gray-400 text-xs">{page.slug}</span>
+                    <span className="text-gray-400 text-xs">{page.path}</span>
                     {page.isFixed && (
-                      <Badge variant="secondary" className="text-xs">固定</Badge>
+                      <Badge variant="secondary" className="text-xs py-0.5">系统</Badge>
                     )}
                   </div>
                 </SelectItem>
@@ -211,18 +141,18 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
           {pageDeleted && (
             <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded">
               <AlertTriangle className="w-4 h-4" />
-              <span>该页面已被删除，请更新链接</span>
+              <span>注意：该页面链接可能已失效，请重新选择</span>
             </div>
           )}
         </div>
       ) : (
         <div className="space-y-2">
-          <Label>外部链接地址</Label>
+          <Label className="text-sm">外部链接地址 (URL)</Label>
           <Input
             type="url"
             value={value.href}
             onChange={(e) => handleUrlChange(e.target.value)}
-            placeholder="https://example.com"
+            placeholder="https://..."
           />
           <p className="text-xs text-gray-500">请输入完整的 URL，包括 https://</p>
         </div>
@@ -230,6 +160,3 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
     </div>
   );
 }
-
-// 导出工具函数
-export { getAllPages, checkPageExists };

@@ -1,5 +1,4 @@
-// 添加组件弹窗
-
+// 添加积木块组件弹窗
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import { Lock } from 'lucide-react';
@@ -12,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { type BlockType, type PageBlock, type ComponentCategory } from '@/types/pageSchema';
+import { type BlockType, type PageBlock, type ComponentCategory } from '@/types';
 import {
   componentRegistry,
   componentsByCategory,
@@ -39,10 +38,10 @@ export function AddBlockDialog({
   const handleAddBlock = (type: BlockType) => {
     const meta = componentRegistry[type];
     const newBlock: PageBlock = {
-      id: nanoid(),
+      id: `block_${nanoid(8)}`,
       type,
-      enabled: true,
-      props: { ...meta.defaultProps },
+      isVisible: true,
+      content: { ...meta.defaultProps },
     };
     onAdd(newBlock);
     onClose();
@@ -54,7 +53,7 @@ export function AddBlockDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>添加组件</DialogTitle>
+          <DialogTitle>添加积木块组件</DialogTitle>
         </DialogHeader>
 
         {/* 分类标签 */}
@@ -71,7 +70,7 @@ export function AddBlockDialog({
           ))}
         </div>
 
-        {/* 组件网格 - 使用缩略图展示 */}
+        {/* 积木块组件网格 */}
         <div className="grid grid-cols-3 gap-4 py-4 max-h-[480px] overflow-y-auto">
           {componentsByCategory[selectedCategory].map((type) => {
             const meta = componentRegistry[type];
@@ -118,7 +117,7 @@ export function AddBlockDialog({
                   </p>
                   {!canAdd && meta.singleton && (
                     <p className="text-xs text-orange-500 mt-1 font-medium">
-                      已添加，不可重复
+                      已添加至页面，不可重复添加
                     </p>
                   )}
                 </div>

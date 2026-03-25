@@ -1,57 +1,31 @@
 // 公司信息管理编辑器
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Building2, Phone, Mail, MapPin, Share2 } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, Share2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import BilingualInput from '../components/BilingualInput';
-import ImageInput from '../components/ImageInput';
+import BilingualInput from '@/admin/components/BilingualInput';
+import ImageInput from '@/admin/components/ImageInput';
 import type { CompanyInfo } from '@/types';
-
-// localStorage 键名
-const COMPANY_INFO_KEY = 'company_info';
-
-// 默认公司信息
-const defaultCompanyInfo: CompanyInfo = {
-  name: { zh: 'KELLOGG', en: 'KELLOGG' },
-  logo: '',
-  description: {
-    zh: '探索时尚，发现自我。我们致力于为您提供最优质的服装和购物体验。',
-    en: 'Explore fashion, discover yourself. We are committed to providing you with the finest clothing and shopping experience.',
-  },
-  contact: {
-    phone: '',
-    email: '',
-    address: { zh: '', en: '' },
-  },
-  socialMedia: {},
-};
+import { useContent } from '@/context/ContentContext';
 
 export default function CompanyInfoEditor() {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
+  const { content, updateSiteSettings } = useContent();
+  const [localInfo, setLocalInfo] = useState<CompanyInfo>(content.companyInfo);
   const [saved, setSaved] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // 加载公司信息
+  // 同步全局数据
   useEffect(() => {
-    const stored = localStorage.getItem(COMPANY_INFO_KEY);
-    if (stored) {
-      try {
-        setCompanyInfo(JSON.parse(stored));
-      } catch {
-        setCompanyInfo(defaultCompanyInfo);
-      }
-    }
-  }, []);
+    setLocalInfo(content.companyInfo);
+  }, [content.companyInfo]);
 
   // 更新公司信息
   const updateInfo = <K extends keyof CompanyInfo>(field: K, value: CompanyInfo[K]) => {
-    setCompanyInfo((prev) => ({ ...prev, [field]: value }));
-    setHasChanges(true);
+    setLocalInfo((prev) => ({ ...prev, [field]: value }));
   };
 
   // 更新联系方式
@@ -59,11 +33,10 @@ export default function CompanyInfoEditor() {
     field: K,
     value: CompanyInfo['contact'][K]
   ) => {
-    setCompanyInfo((prev) => ({
+    setLocalInfo((prev) => ({
       ...prev,
       contact: { ...prev.contact, [field]: value },
     }));
-    setHasChanges(true);
   };
 
   // 更新社交媒体
@@ -71,19 +44,22 @@ export default function CompanyInfoEditor() {
     field: K,
     value: string
   ) => {
-    setCompanyInfo((prev) => ({
+    setLocalInfo((prev) => ({
       ...prev,
       socialMedia: { ...prev.socialMedia, [field]: value || undefined },
     }));
-    setHasChanges(true);
   };
 
   // 保存
-  const handleSave = () => {
-    localStorage.setItem(COMPANY_INFO_KEY, JSON.stringify(companyInfo));
-    setSaved(true);
-    setHasChanges(false);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateSiteSettings(localInfo);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -94,8 +70,8 @@ export default function CompanyInfoEditor() {
           <h1 className="text-2xl font-bold text-gray-800">公司信息管理</h1>
           <p className="text-gray-500 mt-1">管理公司基本信息、联系方式和社交媒体链接</p>
         </div>
-        <Button onClick={handleSave} disabled={!hasChanges}>
-          <Save className="w-4 h-4 mr-2" />
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           保存更改
         </Button>
       </div>
@@ -126,7 +102,7 @@ export default function CompanyInfoEditor() {
             <div className="space-y-2">
               <Label>公司名称</Label>
               <BilingualInput
-                value={companyInfo.name}
+                value={localInfo.name}
                 onChange={(value) => updateInfo('name', value)}
                 placeholder={{ zh: '公司中文名称', en: 'Company English Name' }}
               />
@@ -135,7 +111,7 @@ export default function CompanyInfoEditor() {
             <div className="space-y-2">
               <Label>公司 Logo</Label>
               <ImageInput
-                value={companyInfo.logo}
+                value={localInfo.logo}
                 onChange={(value) => updateInfo('logo', value)}
                 label="上传 Logo"
               />
@@ -145,7 +121,7 @@ export default function CompanyInfoEditor() {
             <div className="space-y-2">
               <Label>公司简介</Label>
               <BilingualInput
-                value={companyInfo.description}
+                value={localInfo.description}
                 onChange={(value) => updateInfo('description', value)}
                 placeholder={{ zh: '请输入公司简介', en: 'Enter company description' }}
                 multiline
@@ -173,7 +149,7 @@ export default function CompanyInfoEditor() {
                   联系电话
                 </Label>
                 <Input
-                  value={companyInfo.contact.phone}
+                  value={localInfo.contact.phone}
                   onChange={(e) => updateContact('phone', e.target.value)}
                   placeholder="+86 138-0000-0000"
                 />
@@ -185,7 +161,7 @@ export default function CompanyInfoEditor() {
                 </Label>
                 <Input
                   type="email"
-                  value={companyInfo.contact.email}
+                  value={localInfo.contact.email}
                   onChange={(e) => updateContact('email', e.target.value)}
                   placeholder="contact@example.com"
                 />
@@ -198,7 +174,7 @@ export default function CompanyInfoEditor() {
                 公司地址
               </Label>
               <BilingualInput
-                value={companyInfo.contact.address}
+                value={localInfo.contact.address}
                 onChange={(value) => updateContact('address', value)}
                 placeholder={{ zh: '请输入公司地址', en: 'Enter company address' }}
               />
@@ -222,7 +198,7 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>微信公众号 ID</Label>
                 <Input
-                  value={companyInfo.socialMedia.wechat || ''}
+                  value={localInfo.socialMedia.wechat || ''}
                   onChange={(e) => updateSocialMedia('wechat', e.target.value)}
                   placeholder="wechat_id"
                 />
@@ -230,7 +206,7 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>微博主页</Label>
                 <Input
-                  value={companyInfo.socialMedia.weibo || ''}
+                  value={localInfo.socialMedia.weibo || ''}
                   onChange={(e) => updateSocialMedia('weibo', e.target.value)}
                   placeholder="https://weibo.com/..."
                 />
@@ -243,7 +219,7 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>Facebook</Label>
                 <Input
-                  value={companyInfo.socialMedia.facebook || ''}
+                  value={localInfo.socialMedia.facebook || ''}
                   onChange={(e) => updateSocialMedia('facebook', e.target.value)}
                   placeholder="https://facebook.com/..."
                 />
@@ -251,7 +227,7 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>Instagram</Label>
                 <Input
-                  value={companyInfo.socialMedia.instagram || ''}
+                  value={localInfo.socialMedia.instagram || ''}
                   onChange={(e) => updateSocialMedia('instagram', e.target.value)}
                   placeholder="https://instagram.com/..."
                 />
@@ -262,7 +238,7 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>Twitter / X</Label>
                 <Input
-                  value={companyInfo.socialMedia.twitter || ''}
+                  value={localInfo.socialMedia.twitter || ''}
                   onChange={(e) => updateSocialMedia('twitter', e.target.value)}
                   placeholder="https://twitter.com/..."
                 />
@@ -270,21 +246,41 @@ export default function CompanyInfoEditor() {
               <div className="space-y-2">
                 <Label>LinkedIn</Label>
                 <Input
-                  value={companyInfo.socialMedia.linkedin || ''}
+                  value={localInfo.socialMedia.linkedin || ''}
                   onChange={(e) => updateSocialMedia('linkedin', e.target.value)}
                   placeholder="https://linkedin.com/company/..."
                 />
               </div>
+              <div className="space-y-2">
+                <Label>TikTok</Label>
+                <Input
+                  value={localInfo.socialMedia.tiktok || ''}
+                  onChange={(e) => updateSocialMedia('tiktok', e.target.value)}
+                  placeholder="https://tiktok.com/..."
+                />
+              </div>
+
+
+              <div className="space-y-2">
+                <Label>YouTube</Label>
+                <Input
+                  value={localInfo.socialMedia.youtube || ''}
+                  onChange={(e) => updateSocialMedia('youtube', e.target.value)}
+                  placeholder="https://youtube.com/..."
+                />
+              </div>
+
+
+              <div className="space-y-2">
+                <Label>WhatsApp</Label>
+                <Input
+                  value={localInfo.socialMedia.whatsapp || ''}
+                  onChange={(e) => updateSocialMedia('whatsapp', e.target.value)}
+                  placeholder="https://whatsapp.com/..."
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>YouTube</Label>
-              <Input
-                value={companyInfo.socialMedia.youtube || ''}
-                onChange={(e) => updateSocialMedia('youtube', e.target.value)}
-                placeholder="https://youtube.com/..."
-              />
-            </div>
           </CardContent>
         </Card>
       </div>

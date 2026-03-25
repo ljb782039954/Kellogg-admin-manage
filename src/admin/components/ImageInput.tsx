@@ -1,5 +1,7 @@
-import { useRef } from 'react';
-import { Upload, X, RefreshCw } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Upload, X, RefreshCw, Loader2 } from 'lucide-react';
+import { useContent } from '@/context/ContentContext';
+import { getPreviewUrl } from '@/lib/utils';
 
 interface ImageInputProps {
   label?: string;
@@ -7,6 +9,7 @@ interface ImageInputProps {
   onChange: (value: string) => void;
   aspectRatio?: 'square' | 'video' | 'banner' | 'auto';
   className?: string;
+  acceptType?: string;
 }
 
 export default function ImageInput({
@@ -15,32 +18,56 @@ export default function ImageInput({
   onChange,
   aspectRatio = 'auto',
   className = '',
+  acceptType = 'image/*',
 }: ImageInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { uploadImage } = useContent();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // 尝试上传到 API
+      const result = await uploadImage(file);
+      onChange(result.url);
+    } catch (err) {
+      // 如果 API 上传失败，回退到 base64（用于离线或本地测试）
+      console.warn('API upload failed, falling back to base64:', err);
       const reader = new FileReader();
       reader.onloadend = () => {
         onChange(reader.result as string);
       };
+      reader.onerror = () => {
+        setError('图片读取失败');
+      };
       reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const clearImage = () => {
     onChange('');
+    setError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // 根据宽高比设置容器样式
+  // 根据宽高比设置容器样式，且限制最大尺寸以防撑太大
   const aspectRatioClass = {
-    square: 'aspect-square',
-    video: 'aspect-video',
-    banner: 'aspect-[3/1]',
-    auto: 'min-h-[120px]',
+    square: 'aspect-square max-w-[140px]',
+    video: 'aspect-video max-w-[220px]',
+    banner: 'aspect-[3/1] max-w-[320px]',
+    auto: 'min-h-[80px] h-24 max-w-[160px]',
   }[aspectRatio];
+
+  // 本地开发时，如果图片 URL 是线上域名，替换为本地后端 URL 使得能顺利预览
+  const previewUrl = getPreviewUrl(value);
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -53,63 +80,95 @@ export default function ImageInput({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*"
+        accept={acceptType}
         className="hidden"
+        disabled={isUploading}
       />
+
+      {/* 错误提示 */}
+      {error && (
+        <div className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">
+          {error}
+        </div>
+      )}
 
       {/* 图片显示/上传区域 */}
       {!value ? (
         // 无图片时：显示上传区域
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={`w-full ${aspectRatioClass} border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center gap-2 text-gray-500`}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
+          disabled={isUploading}
+          className={`w-full ${aspectRatioClass} border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center gap-2 text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          <Upload className="w-8 h-8" />
-          <span className="text-sm font-medium">点击上传图片</span>
-          <span className="text-xs text-gray-400">支持 JPG、PNG、GIF 等格式</span>
+          {isUploading ? (
+            <>
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="text-sm font-medium">上传中...</span>
+            </>
+          ) : (
+            <>
+              <Upload className="w-8 h-8" />
+              <span className="text-sm font-medium">
+                {acceptType.includes('video') ? '点击上传视频' : '点击上传图片'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {acceptType.includes('video') ? '支持 MP4, WebM 等视频格式' : '支持 JPG、PNG、GIF 等格式'}
+              </span>
+            </>
+          )}
         </button>
       ) : (
         // 有图片时：直接显示图片预览
         <div className={`relative w-full ${aspectRatioClass} bg-gray-100 rounded-xl overflow-hidden border border-gray-200 group`}>
-          <img
-            src={value}
-            alt="Preview"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="3" y="3" width="18" height="18" rx="2" ry="2"/%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"/%3E%3Cpolyline points="21 15 16 10 5 21"/%3E%3C/svg%3E';
-            }}
-          />
+          {previewUrl && (previewUrl.match(/\.(mp4|webm|ogg)$/i) || acceptType.includes('video')) ? (
+            <video
+              src={previewUrl}
+              controls
+              className="w-full h-full object-contain bg-black"
+            />
+          ) : (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="3" y="3" width="18" height="18" rx="2" ry="2"/%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"/%3E%3Cpolyline points="21 15 16 10 5 21"/%3E%3C/svg%3E';
+              }}
+            />
+          )}
+
+          {/* 上传中遮罩 */}
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
+            </div>
+          )}
 
           {/* 悬浮操作按钮 */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-            {/* 更换图片 */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
-              title="更换图片"
-            >
-              <RefreshCw className="w-5 h-5 text-gray-700" />
-            </button>
+          {!isUploading && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+              {/* 更换文件 */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                title={acceptType.includes('video') ? "更换视频" : "更换图片"}
+              >
+                <RefreshCw className="w-5 h-5 text-gray-700" />
+              </button>
 
-            {/* 删除图片 */}
-            <button
-              type="button"
-              onClick={clearImage}
-              className="p-3 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
-              title="删除图片"
-            >
-              <X className="w-5 h-5 text-red-500" />
-            </button>
-          </div>
-
-          {/* 底部提示 */}
-          <div className="absolute bottom-2 left-2 right-2 text-center">
-            <span className="text-xs text-white bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              悬浮显示操作按钮
-            </span>
-          </div>
+              {/* 删除文件 */}
+              <button
+                type="button"
+                onClick={clearImage}
+                className="p-3 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
+                title={acceptType.includes('video') ? "删除视频" : "删除图片"}
+              >
+                <X className="w-5 h-5 text-red-500" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

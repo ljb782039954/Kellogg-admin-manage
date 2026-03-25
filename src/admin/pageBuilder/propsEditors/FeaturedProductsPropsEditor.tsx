@@ -1,52 +1,54 @@
 // 精选商品组件属性编辑器（轻量版）
-
 import { useContent } from '@/context/ContentContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 import { Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import BilingualInput from '@/admin/components/BilingualInput';
+import { getPreviewUrl } from '@/lib/utils';
+import type { FeaturedProductsPropsEditorProps } from '@/types';
 
-interface FeaturedProductsPropsEditorProps {
-  props: {
-    title?: { zh: string; en: string };
-    maxItems?: number;
-    layout?: 'grid' | 'slider';
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
 
 export function FeaturedProductsPropsEditor({ props, onUpdate }: FeaturedProductsPropsEditorProps) {
-  const { content, allProducts } = useContent();
+  const { allProducts } = useContent();
 
-  // 获取精选商品（使用 featuredProducts 数据或从 allProducts 筛选）
-  const featuredItems = content.home.featuredProducts.items;
-  const featuredProducts = featuredItems.length > 0
-    ? featuredItems
+  // 获取精选商品 (isFeatured 为 true 的商品)
+  const featuredProducts = (allProducts || [])
+    .filter(p => p.isFeatured)
+    .slice(0, props.maxItems || 8);
+
+  // 如果没有标记为精选的商品，则显示前几个
+  const displayProducts = featuredProducts.length > 0
+    ? featuredProducts
     : (allProducts || []).slice(0, props.maxItems || 8);
 
   return (
     <div className="space-y-6">
       {/* 区块标题 */}
       <div className="space-y-3 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">区块标题</h4>
+        <h4 className="font-medium text-sm text-gray-700">区块标题 (Heading)</h4>
         <BilingualInput
           label="主标题"
-          value={props.title || content.home.featuredProducts.title}
+          value={props.title || { zh: '精选商品', en: 'Featured Products' }}
           onChange={(val) => onUpdate({ ...props, title: val })}
+        />
+        <BilingualInput
+          label="副标题"
+          value={props.subtitle || { zh: '精选商品', en: 'Featured Products' }}
+          onChange={(val) => onUpdate({ ...props, subtitle: val })}
         />
       </div>
 
       {/* 显示设置 */}
       <div className="space-y-4 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">显示设置</h4>
+        <h4 className="font-medium text-sm text-gray-700">显示设置 (Settings)</h4>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>显示数量</Label>
@@ -58,7 +60,7 @@ export function FeaturedProductsPropsEditor({ props, onUpdate }: FeaturedProduct
               onChange={(e) => onUpdate({ ...props, maxItems: parseInt(e.target.value) || 8 })}
             />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label>布局方式</Label>
             <Select
               value={props.layout || 'grid'}
@@ -68,40 +70,40 @@ export function FeaturedProductsPropsEditor({ props, onUpdate }: FeaturedProduct
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="grid">网格展示</SelectItem>
-                <SelectItem value="slider">滑动展示</SelectItem>
+                <SelectItem value="grid">网格展示 (Grid)</SelectItem>
+                <SelectItem value="slider">滑动展示 (Slider)</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
         </div>
       </div>
 
       {/* 数据来源说明 */}
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          精选商品数据来自「商品管理」中的商品。如需调整展示的商品，请前往「商品管理」编辑。
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-700">
+          精选商品数据来自「商品管理」中勾选了「精选」的商品。
         </AlertDescription>
       </Alert>
 
       {/* 当前精选预览 */}
       <div className="space-y-3">
-        <h4 className="font-medium text-sm text-gray-700">当前精选预览（{featuredProducts.length} 件）</h4>
-        {featuredProducts.length === 0 ? (
+        <h4 className="font-medium text-sm text-gray-700">当前精选预览 (Total: {displayProducts.length})</h4>
+        {displayProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无精选商品</p>
-            <p className="text-xs mt-1">请在「商品管理」中添加商品</p>
+            <p className="text-xs mt-1">请在「商品管理」中添加商品并勾选为精选</p>
           </div>
         ) : (
           <div className="grid grid-cols-4 gap-2">
-            {featuredProducts.slice(0, 8).map((product) => (
+            {displayProducts.slice(0, 8).map((product: any) => (
               <div
                 key={product.id}
-                className="aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                className="aspect-square bg-gray-100 rounded-lg overflow-hidden border"
               >
                 {product.image ? (
                   <img
-                    src={product.image}
+                    src={getPreviewUrl(product.image)}
                     alt={product.name.zh}
                     className="w-full h-full object-cover"
                   />

@@ -1,10 +1,9 @@
 // 组件注册表 - 定义所有可用的页面组件
-
 import {
   type BlockType,
   type ComponentMeta,
   type ComponentCategory,
-} from '@/types/pageSchema';
+} from '../types';
 
 // 组件注册表
 export const componentRegistry: Record<BlockType, ComponentMeta> = {
@@ -21,7 +20,7 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
   categories: {
     type: 'categories',
     name: { zh: '分类导航组件', en: 'Categories' },
-    description: { zh: '商品分类快速入口', en: 'Product category navigation' },
+    description: { zh: '产品分类快速入口', en: 'Product category navigation' },
     icon: 'LayoutGrid',
     category: 'product',
     hasGlobalData: true,
@@ -31,7 +30,7 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
   newArrivals: {
     type: 'newArrivals',
     name: { zh: '新品组件', en: 'New Arrivals' },
-    description: { zh: '展示最新上架的商品', en: 'Display latest products' },
+    description: { zh: '展示最新上架的产品', en: 'Display latest products' },
     icon: 'Sparkles',
     category: 'product',
     hasGlobalData: true,
@@ -44,28 +43,28 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
   },
   featuredProducts: {
     type: 'featuredProducts',
-    name: { zh: '精选商品组件', en: 'Featured Products' },
-    description: { zh: '展示推荐的精选商品', en: 'Display featured products' },
+    name: { zh: '精选产品组件', en: 'Featured Products' },
+    description: { zh: '展示推荐的精选产品', en: 'Display featured products' },
     icon: 'Star',
     category: 'product',
     hasGlobalData: true,
     singleton: true,
     defaultProps: {
-      title: { zh: '精选商品', en: 'Featured Products' },
+      title: { zh: '精选产品', en: 'Featured Products' },
       maxItems: 8,
       layout: 'grid',
     },
   },
   productGrid: {
     type: 'productGrid',
-    name: { zh: '商品网格组件', en: 'Product Grid' },
-    description: { zh: '自定义商品展示区域', en: 'Custom product display section' },
+    name: { zh: '产品网格组件', en: 'Product Grid' },
+    description: { zh: '自定义产品展示区域', en: 'Custom product display section' },
     icon: 'Grid3X3',
     category: 'product',
     hasGlobalData: false,
     singleton: false,
     defaultProps: {
-      title: { zh: '商品展示', en: 'Products' },
+      title: { zh: '产品展示', en: 'Products' },
       maxItems: 12,
       layout: 'grid',
       showMoreLink: true,
@@ -103,23 +102,10 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       maxItems: 6,
     },
   },
-  factoryPreview: {
-    type: 'factoryPreview',
-    name: { zh: '工厂介绍组件', en: 'Factory Preview' },
-    description: { zh: '工厂介绍入口，链接到详情页', en: 'Factory introduction preview' },
-    icon: 'Factory',
-    category: 'content',
-    hasGlobalData: true,
-    singleton: true,
-    defaultProps: {
-      showButton: true,
-      buttonText: { zh: '了解更多', en: 'Learn More' },
-    },
-  },
-  faqPreview: {
-    type: 'faqPreview',
-    name: { zh: 'FAQ 组件', en: 'FAQ' },
-    description: { zh: '展示常见问题列表', en: 'FAQ section' },
+  faq: {
+    type: 'faq',
+    name: { zh: 'FAQ 预览组件', en: 'FAQ Preview' },
+    description: { zh: '展示常见问题列表预览', en: 'FAQ section preview' },
     icon: 'HelpCircle',
     category: 'content',
     hasGlobalData: true,
@@ -129,6 +115,7 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       showMoreLink: true,
     },
   },
+
   textSection: {
     type: 'textSection',
     name: { zh: '文本组件', en: 'Text Section' },
@@ -158,20 +145,33 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       overlay: false,
     },
   },
-  videoSection: {
-    type: 'videoSection',
-    name: { zh: '视频组件', en: 'Video Section' },
-    description: { zh: '嵌入视频内容', en: 'Embedded video content' },
-    icon: 'Video',
+  imageBannerTag: {
+    type: 'imageBannerTag',
+    name: { zh: '图片横幅组件带标签', en: 'Image Banner with Tag' },
+    description: { zh: '单张大图展示带标签', en: 'Single image banner with tag' },
+    icon: 'ImageIcon',
     category: 'media',
     hasGlobalData: false,
     singleton: false,
     defaultProps: {
-      title: { zh: '视频标题', en: 'Video Title' },
-      videoUrl: '',
-      autoPlay: false,
+      image: '',
+      height: 'medium',
+      overlay: false,
     },
   },
+  // videoSection: {
+  //   type: 'videoSection',
+  //   name: { zh: '视频区域组件', en: 'Video Section' },
+  //   description: { zh: '带标题的视频展示区', en: 'Video display with title' },
+  //   icon: 'Video',
+  //   category: 'media',
+  //   hasGlobalData: false,
+  //   singleton: false,
+  //   defaultProps: {
+  //     title: { zh: '视频标题', en: 'Video Title' },
+  //     videoUrl: '',
+  //   },
+  // },
   imageText: {
     type: 'imageText',
     name: { zh: '图文组件', en: 'Image & Text' },
@@ -187,10 +187,11 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       imagePosition: 'left',
     },
   },
+
   countdown: {
     type: 'countdown',
     name: { zh: '倒计时促销组件', en: 'Countdown' },
-    description: { zh: '限时活动倒计时，营造紧迫感', en: 'Countdown timer for limited-time events' },
+    description: { zh: '限时活动倒计时', en: 'Countdown timer' },
     icon: 'Timer',
     category: 'marketing',
     hasGlobalData: false,
@@ -198,13 +199,13 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
     defaultProps: {
       title: { zh: '限时特惠', en: 'Limited Time Offer' },
       endTime: '',
-      buttonText: { zh: '立即抢购', en: 'Shop Now' },
     },
   },
+
   partnerLogos: {
     type: 'partnerLogos',
-    name: { zh: '合作伙伴组件', en: 'Partner Logos' },
-    description: { zh: '展示合作品牌、媒体报道', en: 'Display partner brands and media coverage' },
+    name: { zh: '合作伙伴 Logo 组', en: 'Partner Logos' },
+    description: { zh: '展示合作伙伴品牌墙', en: 'Partner logo wall' },
     icon: 'Handshake',
     category: 'marketing',
     hasGlobalData: false,
@@ -212,14 +213,12 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
     defaultProps: {
       title: { zh: '合作伙伴', en: 'Our Partners' },
       logos: [],
-      layout: 'row',
-      grayscale: true,
     },
   },
   gallery: {
     type: 'gallery',
     name: { zh: '图片画廊组件', en: 'Gallery' },
-    description: { zh: '多图展示，支持网格和瀑布流', en: 'Multi-image display with grid or masonry layout' },
+    description: { zh: '多图网格展示', en: 'Multi-image grid display' },
     icon: 'GalleryHorizontal',
     category: 'media',
     hasGlobalData: false,
@@ -227,14 +226,13 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
     defaultProps: {
       title: { zh: '图片展示', en: 'Gallery' },
       images: [],
-      layout: 'grid',
       columns: 3,
     },
   },
   featureList: {
     type: 'featureList',
     name: { zh: '特性列表组件', en: 'Feature List' },
-    description: { zh: '带图标的功能/优势列表', en: 'Feature list with icons' },
+    description: { zh: '带图标的功能列表', en: 'List of features with icons' },
     icon: 'ListChecks',
     category: 'content',
     hasGlobalData: false,
@@ -242,14 +240,13 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
     defaultProps: {
       title: { zh: '我们的优势', en: 'Our Features' },
       features: [],
-      layout: 'grid',
       columns: 3,
     },
   },
   ctaBanner: {
     type: 'ctaBanner',
-    name: { zh: 'CTA行动号召组件', en: 'CTA Banner' },
-    description: { zh: '醒目的号召横幅，提高转化', en: 'Eye-catching call-to-action banner' },
+    name: { zh: 'CTA行动号召横幅', en: 'CTA Banner' },
+    description: { zh: '醒目的号召横幅', en: 'Eye-catching call-to-action banner' },
     icon: 'MousePointerClick',
     category: 'marketing',
     hasGlobalData: false,
@@ -257,7 +254,6 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
     defaultProps: {
       title: { zh: '立即行动', en: 'Take Action Now' },
       primaryButton: { text: { zh: '开始', en: 'Get Started' }, link: '' },
-      alignment: 'center',
     },
   },
 };
@@ -266,13 +262,13 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
 export const componentsByCategory: Record<ComponentCategory, BlockType[]> = {
   product: ['categories', 'newArrivals', 'featuredProducts', 'productGrid'],
   marketing: ['brandValues', 'statistics', 'testimonials', 'countdown', 'partnerLogos', 'ctaBanner'],
-  content: ['factoryPreview', 'faqPreview', 'textSection', 'imageText', 'featureList'],
-  media: ['carousel', 'imageBanner', 'videoSection', 'gallery'],
+  content: ['faq', 'textSection', 'imageText', 'featureList'],
+  media: ['carousel', 'imageBanner', "imageBannerTag", 'gallery'],
 };
 
 // 分类显示名称
 export const categoryNames: Record<ComponentCategory, { zh: string; en: string }> = {
-  product: { zh: '商品展示', en: 'Products' },
+  product: { zh: '产品展示', en: 'Products' },
   marketing: { zh: '营销推广', en: 'Marketing' },
   content: { zh: '内容区块', en: 'Content' },
   media: { zh: '媒体展示', en: 'Media' },

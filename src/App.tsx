@@ -4,14 +4,14 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ContentProvider } from './context/ContentContext';
 
 // Admin 组件
-import Login from './admin/Login';
+// import Login from './admin/Login';
 import Dashboard from './admin/Dashboard';
 import Overview from './admin/Overview';
-import AccountSettings from './admin/AccountSettings';
+// import AccountSettings from './admin/AccountSettings';
 
 // 页面管理
 import { DynamicPagesManager, PageLayoutEditor } from './admin/pageBuilder';
-import ComponentsPreview from './admin/ComponentsPreview';
+import ComponentsPreview from './admin/BlocksPreview';
 
 // 编辑器
 import CompanyInfoEditor from './admin/editors/CompanyInfoEditor';
@@ -26,7 +26,7 @@ function App() {
       <ContentProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            {/* <Route path="/login" element={<Login />} /> */}
             <Route path="/" element={<Dashboard />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Overview />} />
@@ -47,7 +47,7 @@ function App() {
               <Route path="products" element={<ProductsEditor />} />
               <Route path="categories" element={<CategoriesEditor />} />
               <Route path="footer" element={<FooterEditor />} />
-              <Route path="account" element={<AccountSettings />} />
+              {/* <Route path="account" element={<AccountSettings />} /> */}
             </Route>
           </Routes>
         </BrowserRouter>

@@ -1,6 +1,4 @@
 // 文本区块属性编辑器
-
-import { type TextSectionBlockProps } from '@/types/pageSchema';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -11,17 +9,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import BilingualInput from '../../components/BilingualInput';
+import type { TextSectionPropsEditorProps } from '@/types';
 
-interface Props {
-  props: TextSectionBlockProps;
-  onUpdate: (props: TextSectionBlockProps) => void;
-}
-
-export function TextSectionPropsEditor({ props, onUpdate }: Props) {
-  const handleChange = <K extends keyof TextSectionBlockProps>(
-    key: K,
-    value: TextSectionBlockProps[K]
-  ) => {
+export function TextSectionPropsEditor({ props, onUpdate }: TextSectionPropsEditorProps) {
+  const handleChange = (key: string, value: unknown) => {
     onUpdate({ ...props, [key]: value });
   };
 
@@ -75,7 +66,7 @@ export function TextSectionPropsEditor({ props, onUpdate }: Props) {
         <Label>对齐方式</Label>
         <Select
           value={props.alignment || 'center'}
-          onValueChange={(value: 'left' | 'center' | 'right') =>
+          onValueChange={(value) =>
             handleChange('alignment', value)
           }
         >
@@ -95,7 +86,7 @@ export function TextSectionPropsEditor({ props, onUpdate }: Props) {
         <Label>上下间距</Label>
         <Select
           value={props.paddingY || 'medium'}
-          onValueChange={(value: 'small' | 'medium' | 'large') =>
+          onValueChange={(value) =>
             handleChange('paddingY', value)
           }
         >
@@ -103,9 +94,9 @@ export function TextSectionPropsEditor({ props, onUpdate }: Props) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="small">小</SelectItem>
-            <SelectItem value="medium">中</SelectItem>
-            <SelectItem value="large">大</SelectItem>
+            <SelectItem value="small">小 (Small)</SelectItem>
+            <SelectItem value="medium">中 (Medium)</SelectItem>
+            <SelectItem value="large">大 (Large)</SelectItem>
           </SelectContent>
         </Select>
       </div>

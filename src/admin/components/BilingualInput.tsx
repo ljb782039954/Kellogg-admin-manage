@@ -1,4 +1,4 @@
-import type { Translation } from '../../types';
+import type { Translation } from '@/types';
 
 interface BilingualInputProps {
   label?: string;
@@ -20,7 +20,8 @@ export default function BilingualInput({
   return (
     <div className="space-y-3">
       {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> */}
+      <div className="flex flex-col gap-3">
         {/* Chinese Input */}
         <div className="relative">
           <span className="absolute left-3 top-3 text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded">

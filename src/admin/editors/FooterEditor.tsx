@@ -2,31 +2,132 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Save, GripVertical, AlertTriangle } from 'lucide-react';
-import { useContent } from '../../context/ContentContext';
+import { Plus, Trash2, Save, GripVertical, AlertTriangle, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import { useContent } from '@/context/ContentContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import BilingualInput from '../components/BilingualInput';
-import LinkSelector, { getAllPages, checkPageExists } from '../components/LinkSelector';
-import type { Translation, FooterLinkGroup, FooterLink, FooterContent } from '../../types';
+import BilingualInput from '@/admin/components/BilingualInput';
+import LinkSelector from '@/admin/components/LinkSelector';
+import { checkPageExists } from '@/lib/linkUtils';
+import type { Translation, FooterLinkGroup, FooterLink, FooterContent } from '@/types';
+import siteSettings from '@/config/siteSettings.json';
+
+// Footer 预览组件
+function FooterPreview({ footer, language }: { footer: FooterContent; language: 'zh' | 'en' }) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          预览效果
+          <Badge variant="outline" className="ml-2">{language === 'zh' ? '中文' : 'English'}</Badge>
+        </CardTitle>
+        <CardDescription>在浏览器中的实际显示效果（缩略版）</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        {/* 模拟 Footer */}
+        <div className="bg-gray-900 text-white p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            {/* 品牌 & 订阅 */}
+            <div>
+              <h3 className="text-lg font-bold mb-2">
+                {siteSettings.brand.name[language]}
+              </h3>
+              <p className="text-gray-400 text-xs mb-3 line-clamp-2">
+                {siteSettings.brand.description[language]}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder={footer.newsletterPlaceholder[language]}
+                  className="flex-1 px-2 py-1.5 text-xs rounded bg-gray-800 border border-gray-700 text-white"
+                  readOnly
+                />
+                <button className="px-3 py-1.5 text-xs rounded bg-white text-gray-900 font-medium">
+                  {footer.newsletterButton[language]}
+                </button>
+              </div>
+            </div>
+
+            {/* 链接分组 */}
+            {footer.linkGroups.slice(0, 2).map((group, index) => (
+              <div key={index}>
+                <h4 className="font-semibold mb-2 text-sm">{group.title[language]}</h4>
+                <ul className="space-y-1">
+                  {group.links.slice(0, 4).map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <span className={`text-xs ${link.pageDeleted ? 'text-red-400 line-through' : 'text-gray-400'}`}>
+                        {link.name[language]}
+                      </span>
+                    </li>
+                  ))}
+                  {group.links.length > 4 && (
+                    <li className="text-xs text-gray-500">+{group.links.length - 4} 更多...</li>
+                  )}
+                </ul>
+              </div>
+            ))}
+
+            {/* 联系信息 */}
+            <div>
+              <h4 className="font-semibold mb-2 text-sm">
+                {language === 'zh' ? '联系我们' : 'Contact Us'}
+              </h4>
+              <ul className="space-y-1.5 text-xs text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Phone className="w-3 h-3" />
+                  <span>{siteSettings.contact.phone}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Mail className="w-3 h-3" />
+                  <span>{siteSettings.contact.email}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin className="w-3 h-3 mt-0.5" />
+                  <span className="line-clamp-2">{siteSettings.contact.address[language]}</span>
+                </li>
+              </ul>
+              {/* 社交媒体 */}
+              <div className="flex gap-2 mt-3">
+                {[Facebook, Instagram, Twitter, Youtube].map((Icon, i) => (
+                  <div key={i} className="w-6 h-6 rounded-full border border-gray-700 flex items-center justify-center">
+                    <Icon className="w-3 h-3 text-gray-400" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 版权 */}
+          <div className="border-t border-gray-800 pt-4 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
+            <span>© 2024 {siteSettings.brand.name[language]}. {language === 'zh' ? '保留所有权利。' : 'All rights reserved.'}</span>
+            <div className="flex gap-4 mt-2 md:mt-0">
+              <span>{language === 'zh' ? '隐私政策' : 'Privacy Policy'}</span>
+              <span>{language === 'zh' ? '服务条款' : 'Terms of Service'}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function FooterEditor() {
   const { content, updateFooter } = useContent();
   const [localFooter, setLocalFooter] = useState<FooterContent>(content.footer);
   const [saved, setSaved] = useState(false);
   const [hasDeletedPages, setHasDeletedPages] = useState(false);
+  const [previewLang, setPreviewLang] = useState<'zh' | 'en'>('zh');
 
   // 检查是否有已删除的页面链接
   useEffect(() => {
-    const pages = getAllPages();
     const hasDeleted = localFooter.linkGroups.some((group) =>
       group.links.some(
-        (link) => link.linkType === 'internal' && link.href && !checkPageExists(link.href, pages)
+        (link) => !checkPageExists(link.href, link.linkType, content.pages)
       )
     );
     setHasDeletedPages(hasDeleted);
-  }, [localFooter.linkGroups]);
+  }, [localFooter.linkGroups, content.pages]);
 
   // 将旧格式转换为新格式
   useEffect(() => {
@@ -64,6 +165,7 @@ export default function FooterEditor() {
   const addLinkToGroup = (groupIndex: number) => {
     const newGroups = [...localFooter.linkGroups];
     const newLink: FooterLink = {
+      id: Date.now().toString(), // TODO: 生成更可靠的 ID
       name: { zh: '新链接', en: 'New Link' },
       linkType: 'internal',
       href: '',
@@ -98,6 +200,7 @@ export default function FooterEditor() {
 
   const addLinkGroup = () => {
     const newGroup: FooterLinkGroup = {
+      id: Date.now().toString(), // TODO: 生成更可靠的 ID
       title: { zh: '新分组', en: 'New Group' },
       links: [],
     };
@@ -137,6 +240,30 @@ export default function FooterEditor() {
           保存成功！
         </motion.div>
       )}
+
+      {/* Footer 预览 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">组件预览</span>
+          <div className="flex gap-1">
+            <Button
+              variant={previewLang === 'zh' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setPreviewLang('zh')}
+            >
+              中文
+            </Button>
+            <Button
+              variant={previewLang === 'en' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setPreviewLang('en')}
+            >
+              English
+            </Button>
+          </div>
+        </div>
+        <FooterPreview footer={localFooter} language={previewLang} />
+      </div>
 
       {/* 页面删除警告 */}
       {hasDeletedPages && (
@@ -187,7 +314,7 @@ export default function FooterEditor() {
 
         {localFooter.linkGroups.map((group, groupIndex) => {
           const groupHasDeletedLinks = group.links.some(
-            (link) => link.pageDeleted || (link.linkType === 'internal' && link.href && !checkPageExists(link.href, getAllPages()))
+            (link) => link.pageDeleted || !checkPageExists(link.href, link.linkType, content.pages)
           );
 
           return (
@@ -249,11 +376,10 @@ export default function FooterEditor() {
                     group.links.map((link, linkIndex) => (
                       <div
                         key={linkIndex}
-                        className={`p-4 rounded-lg border ${
-                          link.pageDeleted
-                            ? 'border-red-300 bg-red-50'
-                            : 'border-gray-200 bg-gray-50'
-                        }`}
+                        className={`p-4 rounded-lg border ${link.pageDeleted
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-200 bg-gray-50'
+                          }`}
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex-1 space-y-4">

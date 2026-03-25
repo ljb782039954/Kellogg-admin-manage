@@ -1,7 +1,6 @@
-// 可拖拽的区块列表组件
-
+// 可拖拽的积木块列表组件
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { type PageBlock } from '@/types/pageSchema';
+import { type PageBlock } from '@/types';
 import { BlockItem } from './BlockItem';
 
 interface BlockListProps {
@@ -31,8 +30,8 @@ export function BlockList({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
           </svg>
         </div>
-        <p className="text-sm font-medium">暂无组件</p>
-        <p className="text-xs mt-1">点击下方按钮添加组件</p>
+        <p className="text-sm font-medium">暂无积木块</p>
+        <p className="text-xs mt-1">点击下方按钮添加积木块组件</p>
       </div>
     );
   }

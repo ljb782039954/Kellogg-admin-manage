@@ -1,93 +1,81 @@
-// 统计数据组件属性编辑器（轻量版）
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useContent } from '@/context/ContentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { Statistic } from '@/types';
+import type { Statistic, StatisticsPropsEditorProps } from '@/types';
 
-interface StatisticsPropsEditorProps {
-  props: Record<string, unknown>;
-  onUpdate: (props: Record<string, unknown>) => void;
-}
 
-export function StatisticsPropsEditor({}: StatisticsPropsEditorProps) {
-  const { content, updateStatistics } = useContent();
-  const [localData, setLocalData] = useState(content.home.statistics);
+export function StatisticsPropsEditor({ props, onUpdate }: StatisticsPropsEditorProps) {
+  const [localData, setLocalData] = useState<Statistic[]>(props.items || []);
 
-  useEffect(() => {
-    setLocalData(content.home.statistics);
-  }, [content.home.statistics]);
-
-  const saveData = (data: typeof localData) => {
-    setLocalData(data);
-    updateStatistics(data);
+  const saveStats = (items: Statistic[]) => {
+    setLocalData(items);
+    onUpdate({ ...props, items });
   };
 
-  const addStat = () => {
-    saveData({
+  const addItem = () => {
+    saveStats([
       ...localData,
-      stats: [
-        ...localData.stats,
-        {
-          value: '100+',
-          label: { zh: '新统计', en: 'New Stat' },
-        },
-      ],
-    });
+      {
+        id: Math.max(0, ...localData.map(s => s.id)) + 1,
+        value: '100+',
+        label: { zh: '新统计', en: 'New Stat' },
+      },
+    ]);
   };
 
-  const updateStat = <K extends keyof Statistic>(index: number, field: K, value: Statistic[K]) => {
-    const newStats = [...localData.stats];
-    newStats[index] = { ...newStats[index], [field]: value };
-    saveData({ ...localData, stats: newStats });
+  const updateItem = (index: number, field: keyof Statistic, value: any) => {
+    const newItems = [...localData];
+    newItems[index] = { ...newItems[index], [field]: value };
+    saveStats(newItems);
   };
 
-  const removeStat = (index: number) => {
-    saveData({
-      ...localData,
-      stats: localData.stats.filter((_, i) => i !== index),
-    });
+  const removeItem = (index: number) => {
+    saveStats(localData.filter((_, i) => i !== index));
   };
 
   return (
     <div className="space-y-6">
-      {/* 区块标题 */}
+      {/* 标题设置 */}
       <div className="space-y-3 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">区块标题</h4>
+        <h4 className="font-medium text-sm text-gray-700">标题设置 (Heading)</h4>
         <BilingualInput
           label="标题"
-          value={localData.title}
-          onChange={(val) => saveData({ ...localData, title: val })}
+          value={props.title || { zh: '数据统计', en: 'Statistics' }}
+          onChange={(val) => onUpdate({ ...props, title: val })}
+        />
+        <BilingualInput
+          label="副标题"
+          value={props.subtitle || { zh: '记录我们的成长时刻', en: 'Moments of our growth' }}
+          onChange={(val) => onUpdate({ ...props, subtitle: val })}
         />
       </div>
 
       {/* 统计列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-gray-700">统计数据项</h4>
-          <Button variant="outline" size="sm" onClick={addStat}>
+          <h4 className="font-medium text-sm text-gray-700">统计数据项 (Items)</h4>
+          <Button variant="outline" size="sm" onClick={addItem}>
             <Plus className="w-4 h-4 mr-1" />
-            添加
+            添加 (Add)
           </Button>
         </div>
 
-        {localData.stats.length === 0 ? (
+        {localData.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无统计数据</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {localData.stats.map((item, index) => (
+            {localData.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="border rounded-lg overflow-hidden"
+                className="border rounded-lg overflow-hidden bg-white"
               >
                 <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
                   <div className="flex items-center gap-2">
@@ -97,7 +85,7 @@ export function StatisticsPropsEditor({}: StatisticsPropsEditorProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeStat(index)}
+                    onClick={() => removeItem(index)}
                     className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -105,17 +93,17 @@ export function StatisticsPropsEditor({}: StatisticsPropsEditorProps) {
                 </div>
                 <div className="p-3 space-y-3">
                   <div className="space-y-1">
-                    <Label className="text-xs">数值（如 100+、50K）</Label>
+                    <Label className="text-xs">数值 (如 100+、50K)</Label>
                     <Input
                       value={item.value}
-                      onChange={(e) => updateStat(index, 'value', e.target.value)}
+                      onChange={(e) => updateItem(index, 'value', e.target.value)}
                       placeholder="100+"
                     />
                   </div>
                   <BilingualInput
-                    label="标签"
+                    label="标签 (Label)"
                     value={item.label}
-                    onChange={(val) => updateStat(index, 'label', val)}
+                    onChange={(val) => updateItem(index, 'label', val)}
                   />
                 </div>
               </motion.div>

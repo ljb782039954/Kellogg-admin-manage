@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { type PageBlock } from '@/types/pageSchema';
+import { type PageBlock } from '@/types';
 import { componentRegistry } from '@/config/componentRegistry';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,6 +54,26 @@ export function BlockItem({
 
   const meta = componentRegistry[block.type];
 
+  // 如果组件类型不存在于注册表中，显示错误占位符
+  if (!meta) {
+    return (
+      <div className="flex items-center justify-between p-4 bg-red-50 border-2 border-dashed border-red-200 rounded-xl text-red-500">
+        <div className="flex items-center gap-2">
+          <Trash2 className="w-4 h-4" />
+          <span className="text-sm font-medium">未知组件类型: {block.type}</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onRemove}
+          className="text-red-500 hover:text-red-700 hover:bg-red-100"
+        >
+          删除
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -62,7 +82,7 @@ export function BlockItem({
         'flex items-stretch gap-0 rounded-xl border-2 bg-white transition-all overflow-hidden',
         isSelected && 'ring-2 ring-primary border-primary shadow-md',
         isDragging && 'opacity-50 shadow-xl scale-105',
-        !block.enabled && 'opacity-60'
+        !block.isVisible && 'opacity-60'
       )}
     >
       {/* 左侧：拖拽手柄 + 上下移动 */}
@@ -150,7 +170,7 @@ export function BlockItem({
                     onToggle();
                   }}
                 >
-                  {block.enabled ? (
+                  {block.isVisible ? (
                     <Eye className="w-4 h-4 text-gray-500" />
                   ) : (
                     <EyeOff className="w-4 h-4 text-gray-400" />
@@ -158,7 +178,7 @@ export function BlockItem({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {block.enabled ? '点击隐藏组件' : '点击显示组件'}
+                {block.isVisible ? '点击隐藏组件' : '点击显示组件'}
               </TooltipContent>
             </Tooltip>
 

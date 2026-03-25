@@ -1,23 +1,20 @@
-// 区块属性编辑面板
-
-import { type PageBlock, } from '@/types/pageSchema';
+// 积木块属性编辑面板
+import { type PageBlock } from '@/types';
 import { componentRegistry } from '@/config/componentRegistry';
 import * as LucideIcons from 'lucide-react';
 
-// 轻量属性编辑器
+// 组件基础编辑器
 import { TextSectionPropsEditor } from './propsEditors/TextSectionPropsEditor';
 import { ImageBannerPropsEditor } from './propsEditors/ImageBannerPropsEditor';
+import { ImageBannerTagPropsEditor } from './propsEditors/ImageBannerTagPropsEditor';
 import { ProductGridPropsEditor } from './propsEditors/ProductGridPropsEditor';
-import { VideoSectionPropsEditor } from './propsEditors/VideoSectionPropsEditor';
 import { LayoutPropsEditor } from './propsEditors/LayoutPropsEditor';
 
-// 全局数据组件轻量编辑器
-import { FAQPropsEditor } from './propsEditors/FAQPropsEditor';
+// 实体/全页面数据编辑器
 import { CarouselPropsEditor } from './propsEditors/CarouselPropsEditor';
 import { BrandValuesPropsEditor } from './propsEditors/BrandValuesPropsEditor';
 import { StatisticsPropsEditor } from './propsEditors/StatisticsPropsEditor';
 import { TestimonialsPropsEditor } from './propsEditors/TestimonialsPropsEditor';
-import { FactoryPropsEditor } from './propsEditors/FactoryPropsEditor';
 import { CategoriesPropsEditor } from './propsEditors/CategoriesPropsEditor';
 import { NewArrivalsPropsEditor } from './propsEditors/NewArrivalsPropsEditor';
 import { FeaturedProductsPropsEditor } from './propsEditors/FeaturedProductsPropsEditor';
@@ -27,15 +24,28 @@ import { PartnerLogosPropsEditor } from './propsEditors/PartnerLogosPropsEditor'
 import { GalleryPropsEditor } from './propsEditors/GalleryPropsEditor';
 import { FeatureListPropsEditor } from './propsEditors/FeatureListPropsEditor';
 import { CtaBannerPropsEditor } from './propsEditors/CtaBannerPropsEditor';
+// import { VideoSectionPropsEditor } from './propsEditors/VideoSectionPropsEditor';
+import { FAQPropsEditor } from './propsEditors/FAQPropsEditor';
 
 interface BlockPropsEditorProps {
   block: PageBlock;
-  onUpdate: (props: PageBlock['props']) => void;
+  onUpdate: (content: any) => void;
 }
 
 export function BlockPropsEditor({ block, onUpdate }: BlockPropsEditorProps) {
   const meta = componentRegistry[block.type];
-  const IconComponent = (LucideIcons as any)[meta.icon] || LucideIcons.Box;
+
+  if (!meta) {
+    return (
+      <div className="p-8 text-center bg-red-50 border border-dashed border-red-200 rounded-lg">
+        <LucideIcons.AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+        <p className="text-red-600 font-medium">未知组件类型</p>
+        <p className="text-red-400 text-sm">{block.type}</p>
+      </div>
+    );
+  }
+
+  const IconComponent = (LucideIcons as any)[meta.icon] || (LucideIcons as any).Box || LucideIcons.Square;
 
   return (
     <div className="h-full flex flex-col">
@@ -64,57 +74,57 @@ function PropsEditorSwitch({
   onUpdate,
 }: {
   block: PageBlock;
-  onUpdate: (props: PageBlock['props']) => void;
+  onUpdate: (content: any) => void;
 }) {
-  const props = block.props as Record<string, unknown>;
+  const content = block.content as Record<string, unknown>;
 
   switch (block.type) {
-    // 全局数据组件
+    // 全局数据组件（由 ContentContext 管理核心数据，此处编辑外围属性）
     case 'carousel':
-      return <CarouselPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <CarouselPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'categories':
-      return <CategoriesPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <CategoriesPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'newArrivals':
-      return <NewArrivalsPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <NewArrivalsPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'featuredProducts':
-      return <FeaturedProductsPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <FeaturedProductsPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'brandValues':
-      return <BrandValuesPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <BrandValuesPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'statistics':
-      return <StatisticsPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <StatisticsPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'testimonials':
-      return <TestimonialsPropsEditor props={props as never} onUpdate={onUpdate as never} />;
-    case 'factoryPreview':
-      return <FactoryPropsEditor props={props as never} onUpdate={onUpdate as never} />;
-    case 'faqPreview':
-      return <FAQPropsEditor props={props as never} onUpdate={onUpdate as never} />;
-
-    // 局部数据组件
+      return <TestimonialsPropsEditor props={content as any} onUpdate={onUpdate} />;
+    case 'faq':
+      return <FAQPropsEditor props={content as any} onUpdate={onUpdate} />;
+    // 局部内容组件
     case 'textSection':
-      return <TextSectionPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <TextSectionPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'imageBanner':
-      return <ImageBannerPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <ImageBannerPropsEditor props={content as any} onUpdate={onUpdate} />;
+    case 'imageBannerTag':
+      return <ImageBannerTagPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'productGrid':
       return (
         <div className="space-y-4">
           <LayoutPropsEditor block={block} onUpdate={onUpdate} />
-          <ProductGridPropsEditor props={props as never} onUpdate={onUpdate as never} />
+          <ProductGridPropsEditor props={content as any} onUpdate={onUpdate} />
         </div>
       );
-    case 'videoSection':
-      return <VideoSectionPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+    // case 'videoSection':
+    //   return <VideoSectionPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'imageText':
-      return <ImageTextPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <ImageTextPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'countdown':
-      return <CountdownPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <CountdownPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'partnerLogos':
-      return <PartnerLogosPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <PartnerLogosPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'gallery':
-      return <GalleryPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <GalleryPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'featureList':
-      return <FeatureListPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <FeatureListPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'ctaBanner':
-      return <CtaBannerPropsEditor props={props as never} onUpdate={onUpdate as never} />;
+      return <CtaBannerPropsEditor props={content as any} onUpdate={onUpdate} />;
+
 
     default:
       return (

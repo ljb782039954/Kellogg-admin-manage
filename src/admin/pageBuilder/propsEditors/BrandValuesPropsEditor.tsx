@@ -1,110 +1,82 @@
-// 品牌价值组件属性编辑器（轻量版）
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useContent } from '@/context/ContentContext';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { BrandValue } from '@/types';
+import type { BrandValue, BrandValuesPropsEditorProps, } from '@/types';
+import { iconOptions } from '@/types';
 
-// 可选图标列表
-const iconOptions = [
-  { value: 'Leaf', label: '🌿 环保' },
-  { value: 'Heart', label: '❤️ 爱心' },
-  { value: 'Star', label: '⭐ 星星' },
-  { value: 'Shield', label: '🛡️ 盾牌' },
-  { value: 'Award', label: '🏆 奖杯' },
-  { value: 'Users', label: '👥 用户' },
-  { value: 'Globe', label: '🌍 地球' },
-  { value: 'Zap', label: '⚡ 闪电' },
-];
 
-interface BrandValuesPropsEditorProps {
-  props: Record<string, unknown>;
-  onUpdate: (props: Record<string, unknown>) => void;
-}
+export function BrandValuesPropsEditor({ props, onUpdate }: BrandValuesPropsEditorProps) {
+  const [localItems, setLocalItems] = useState<BrandValue[]>(props.items || []);
 
-export function BrandValuesPropsEditor({ props: _, onUpdate: __ }: BrandValuesPropsEditorProps) {
-  const { content, updateBrandValues } = useContent();
-  const [localData, setLocalData] = useState(content.home.brandValues);
-
-  useEffect(() => {
-    setLocalData(content.home.brandValues);
-  }, [content.home.brandValues]);
-
-  const saveData = (data: typeof localData) => {
-    setLocalData(data);
-    updateBrandValues(data);
+  const saveItems = (items: BrandValue[]) => {
+    setLocalItems(items);
+    onUpdate({ ...props, items });
   };
 
-  const addValue = () => {
-    saveData({
-      ...localData,
-      values: [
-        ...localData.values,
-        {
-          icon: 'Star',
-          title: { zh: '新价值', en: 'New Value' },
-          description: { zh: '描述内容', en: 'Description' },
-        },
-      ],
-    });
+  const addItems = () => {
+    saveItems([
+      ...localItems,
+      {
+        id: Math.max(0, ...localItems.map(v => v.id)) + 1,
+        icon: 'Star',
+        title: { zh: '新价值', en: 'New Value' },
+        description: { zh: '描述内容', en: 'Description' },
+      },
+    ]);
   };
 
-  const updateValue = <K extends keyof BrandValue>(index: number, field: K, value: BrandValue[K]) => {
-    const newValues = [...localData.values];
-    newValues[index] = { ...newValues[index], [field]: value };
-    saveData({ ...localData, values: newValues });
+  const updateItems = (index: number, field: keyof BrandValue, value: any) => {
+    const newItems = [...localItems];
+    newItems[index] = { ...newItems[index], [field]: value };
+    saveItems(newItems);
   };
 
-  const removeValue = (index: number) => {
-    saveData({
-      ...localData,
-      values: localData.values.filter((_, i) => i !== index),
-    });
+  const removeItems = (index: number) => {
+    saveItems(localItems.filter((_, i) => i !== index));
   };
 
   return (
     <div className="space-y-6">
-      {/* 区块标题 */}
+      {/* 标题设置 */}
       <div className="space-y-3 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">区块标题</h4>
+        <h4 className="font-medium text-sm text-gray-700">标题设置 (Heading)</h4>
         <BilingualInput
-          label="主标题"
-          value={localData.title}
-          onChange={(val) => saveData({ ...localData, title: val })}
+          label="标题"
+          value={props.title || { zh: '品牌价值', en: 'Brand Values' }}
+          onChange={(val) => onUpdate({ ...props, title: val })}
         />
         <BilingualInput
           label="副标题"
-          value={localData.subtitle}
-          onChange={(val) => saveData({ ...localData, subtitle: val })}
+          value={props.subtitle || { zh: '我们坚持的品质与承诺', en: 'Our commitment to quality and excellence' }}
+          onChange={(val) => onUpdate({ ...props, subtitle: val })}
         />
       </div>
 
       {/* 价值列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-gray-700">品牌价值项</h4>
-          <Button variant="outline" size="sm" onClick={addValue}>
+          <h4 className="font-medium text-sm text-gray-700">品牌价值项 (Items)</h4>
+          <Button variant="outline" size="sm" onClick={addItems}>
             <Plus className="w-4 h-4 mr-1" />
-            添加
+            添加 (Add)
           </Button>
         </div>
 
-        {localData.values.length === 0 ? (
+        {localItems.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <p className="text-sm">暂无品牌价值项</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {localData.values.map((item, index) => (
+            {localItems.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="border rounded-lg overflow-hidden"
+                className="border rounded-lg overflow-hidden bg-white"
               >
                 <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
                   <div className="flex items-center gap-2">
@@ -114,7 +86,7 @@ export function BrandValuesPropsEditor({ props: _, onUpdate: __ }: BrandValuesPr
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeValue(index)}
+                    onClick={() => removeItems(index)}
                     className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -125,8 +97,8 @@ export function BrandValuesPropsEditor({ props: _, onUpdate: __ }: BrandValuesPr
                     <Label className="text-xs">图标</Label>
                     <select
                       value={item.icon}
-                      onChange={(e) => updateValue(index, 'icon', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      onChange={(e) => updateItems(index, 'icon', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
                     >
                       {iconOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -138,12 +110,12 @@ export function BrandValuesPropsEditor({ props: _, onUpdate: __ }: BrandValuesPr
                   <BilingualInput
                     label="标题"
                     value={item.title}
-                    onChange={(val) => updateValue(index, 'title', val)}
+                    onChange={(val) => updateItems(index, 'title', val)}
                   />
                   <BilingualInput
                     label="描述"
                     value={item.description}
-                    onChange={(val) => updateValue(index, 'description', val)}
+                    onChange={(val) => updateItems(index, 'description', val)}
                     multiline
                   />
                 </div>

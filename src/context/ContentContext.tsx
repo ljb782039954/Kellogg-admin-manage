@@ -1,169 +1,287 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { SiteContent, Product } from '../types';
-import { placeholderContent, placeholderProducts } from '../config/placeholder';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import type {
+  SiteContent,
+  Product,
+  Category,
+  HeaderContent,
+  FooterContent,
+  CustomPage,
+  CompanyInfo,
+  ProductInput,
+  CategoryInput,
+} from '../types';
+import { api } from '../lib/api';
+import { toast } from 'sonner';
 
-// 扩展类型，添加 categories 字段
-interface ExtendedSiteContent extends SiteContent {
-  categories?: { id: string; name: { zh: string; en: string } }[];
-}
+// 初始空白状态
+const blankCompany: CompanyInfo = {
+  name: { zh: '', en: '' },
+  logo: '',
+  description: { zh: '', en: '' },
+  contact: { phone: '', email: '', address: { zh: '', en: '' } },
+  socialMedia: {}
+};
+
+const blankHeader: HeaderContent = {
+  logoText: { zh: 'KELLOGG', en: 'KELLOGG' },
+  navItems: []
+};
+
+const blankFooter: FooterContent = {
+  linkGroups: [],
+  newsletterPlaceholder: { zh: '', en: '' },
+  newsletterButton: { zh: '', en: '' }
+};
+
+const blankContent: SiteContent = {
+  companyInfo: blankCompany,
+  header: blankHeader,
+  footer: blankFooter,
+  pages: []
+};
 
 interface ContentContextType {
-  content: ExtendedSiteContent;
+  // 状态
+  content: SiteContent;
   allProducts: Product[];
-  updateContent: (newContent: SiteContent) => void;
-  updateHeader: (header: SiteContent['header']) => void;
-  updateHome: (home: SiteContent['home']) => void;
-  updateProducts: (products: SiteContent['products']) => void;
-  updateCategories: (categories: SiteContent['products']['categories']) => void;
-  updateAllProducts: (products: Product[]) => void;
-  updateNewArrivals: (newArrivals: SiteContent['newArrivals']) => void;
-  updateFactory: (factory: SiteContent['factory']) => void;
-  updateFAQ: (faq: SiteContent['faq']) => void;
-  updateFooter: (footer: SiteContent['footer']) => void;
-  updateStatistics: (statistics: SiteContent['home']['statistics']) => void;
-  updateTestimonials: (testimonials: SiteContent['home']['testimonials']) => void;
-  updateBrandValues: (brandValues: SiteContent['home']['brandValues']) => void;
-  updateCarousel: (carousel: SiteContent['home']['carousel']) => void;
-}
+  categories: Category[];
+  isLoading: boolean;
+  error: string | null;
 
-const CONTENT_STORAGE_KEY = 'minimal_site_content';
-const PRODUCTS_STORAGE_KEY = 'minimal_all_products';
+  // 数据获取
+  refreshData: () => Promise<void>;
+  findPage: (id: string) => CustomPage | undefined;
+  clearError: () => void;
+
+  // 商品 CRUD (D1)
+  createProduct: (data: ProductInput) => Promise<Product>;
+  updateProduct: (id: number, data: Partial<ProductInput>) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+
+  // 分类 CRUD (D1)
+  createCategory: (data: CategoryInput) => Promise<Category>;
+  updateCategory: (id: string, data: Partial<CategoryInput>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+
+  // 页面管理 (KV)
+  updatePage: (pageId: string, pageData: Partial<CustomPage>) => Promise<void>;
+  addPage: (page: CustomPage) => Promise<void>;
+  deletePage: (pageId: string) => Promise<void>;
+
+  // 全局配置管理 (KV)
+  updateSiteSettings: (settings: CompanyInfo) => Promise<void>;
+  updateHeader: (header: HeaderContent) => Promise<void>;
+  updateFooter: (footer: FooterContent) => Promise<void>;
+
+  // 图片上传
+  uploadImage: (file: File) => Promise<{ url: string; key: string }>;
+  deleteImage: (key: string) => Promise<void>;
+}
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export function ContentProvider({ children }: { children: ReactNode }) {
-  const [content, setContent] = useState<ExtendedSiteContent>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(CONTENT_STORAGE_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return placeholderContent;
-        }
-      }
-    }
-    return placeholderContent;
-  });
+  const [content, setContent] = useState<SiteContent>(blankContent);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  const [allProducts, setAllProducts] = useState<Product[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return placeholderProducts;
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = useCallback(() => setError(null), []);
+
+  const findPage = useCallback((id: string) => {
+    return content.pages.find(p => p.id === id);
+  }, [content.pages]);
+
+  // 全局刷新逻辑
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. 获取所有实体数据 (带容错，表不存在时返回空)
+      const fetchEntity = async <T,>(p: Promise<T>, defaultValue: T): Promise<T> => {
+        try { return await p; } catch (e) {
+          console.warn('D1 entity load failed, using fallback:', e);
+          return defaultValue;
         }
-      }
+      };
+
+      const [productsResp, categoriesData] = await Promise.all([
+        fetchEntity(api.getProducts({ pageSize: 1000 }), { data: [], total: 0, page: 1, pageSize: 1000, totalPages: 1 }),
+        fetchEntity(api.getCategories(), []),
+      ]);
+
+      // 2. 从 KV 获取所有页面和配置 (核心积木系统依赖)
+      const fetchConfig = async <T,>(key: string, defaultVal: T): Promise<T> => {
+        try {
+          const val = await api.getConfig<T>(key);
+          return val === null ? defaultVal : val;
+        } catch (e) {
+          console.error(`KV config load failed [${key}]:`, e);
+          return defaultVal;
+        }
+      };
+
+      const [
+        pages, 
+        siteSettings, 
+        header, 
+        footer
+      ] = await Promise.all([
+        fetchConfig<CustomPage[]>('pages', blankContent.pages),
+        fetchConfig<CompanyInfo>('site_settings', blankContent.companyInfo),
+        fetchConfig<HeaderContent>('header_config', blankContent.header),
+        fetchConfig<FooterContent>('footer_config', blankContent.footer),
+      ]);
+
+      // 3. 组装全局状态
+      setContent({
+        companyInfo: siteSettings,
+        header: header,
+        footer: footer,
+        pages: pages,
+      });
+
+      setAllProducts(productsResp.data || []);
+      setCategories(categoriesData);
+
+    } catch (err) {
+      console.error('Critical data load failure:', err);
+      setError('无法连接到服务器，请检查 Worker 是否正常运行');
+    } finally {
+      setIsLoading(false);
     }
-    return placeholderProducts;
-  });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(content));
-  }, [content]);
+    refreshData();
+  }, [refreshData]);
 
-  useEffect(() => {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(allProducts));
-  }, [allProducts]);
+  // ============================================
+  // 商品与分类 (目前核心逻辑)
+  // ============================================
+  const createProduct = useCallback(async (data: ProductInput) => {
+    const p = await api.createProduct(data);
+    await refreshData();
+    return p;
+  }, [refreshData]);
 
-  const updateContent = (newContent: SiteContent) => {
-    setContent(newContent);
-  };
+  const updateProduct = useCallback(async (id: number, data: Partial<ProductInput>) => {
+    await api.updateProduct(id, data);
+    await refreshData();
+  }, [refreshData]);
 
-  const updateHeader = (header: SiteContent['header']) => {
-    setContent((prev) => ({ ...prev, header }));
-  };
+  const deleteProduct = useCallback(async (id: number) => {
+    await api.deleteProduct(id);
+    setAllProducts(prev => prev.filter(p => p.id !== id));
+  }, []);
 
-  const updateHome = (home: SiteContent['home']) => {
-    setContent((prev) => ({ ...prev, home }));
-  };
+  const createCategory = useCallback(async (data: CategoryInput) => {
+    const c = await api.createCategory(data);
+    const categoriesData = await api.getCategories();
+    setCategories(categoriesData);
+    return c;
+  }, []);
 
-  const updateProducts = (products: SiteContent['products']) => {
-    setContent((prev) => ({ ...prev, products }));
-  };
+  const updateCategory = useCallback(async (id: string, data: Partial<CategoryInput>) => {
+    await api.updateCategory(id, data);
+    const categoriesData = await api.getCategories();
+    setCategories(categoriesData);
+  }, []);
 
-  const updateCategories = (categories: SiteContent['products']['categories']) => {
-    setContent((prev) => ({
-      ...prev,
-      products: { ...prev.products, categories },
-      // 同时更新顶层 categories 以便组件访问
-      categories,
-    }));
-  };
+  const deleteCategory = useCallback(async (id: string) => {
+    await api.deleteCategory(id);
+    const categoriesData = await api.getCategories();
+    setCategories(categoriesData);
+  }, []);
 
-  const updateAllProducts = (products: Product[]) => {
-    setAllProducts(products);
-  };
+  // ============================================
+  // 页面管理 (真正的积木持久化)
+  // ============================================
+  const updatePage = useCallback(async (pageId: string, pageData: Partial<CustomPage>) => {
+    const updatedPages = content.pages.map(p =>
+      p.id === pageId ? { ...p, ...pageData } : p
+    );
+    // 先持久化 KV
+    await api.setConfig('pages', updatedPages);
+    // 后同步 State
+    setContent(prev => ({ ...prev, pages: updatedPages }));
+    toast.success('页面布局已自动保存');
+  }, [content.pages]);
 
-  const updateNewArrivals = (newArrivals: SiteContent['newArrivals']) => {
-    setContent((prev) => ({ ...prev, newArrivals }));
-  };
+  const addPage = useCallback(async (page: CustomPage) => {
+    const updatedPages = [...content.pages, page];
+    await api.setConfig('pages', updatedPages);
+    setContent(prev => ({ ...prev, pages: updatedPages }));
+    toast.success('已新建页面');
+  }, [content.pages]);
 
-  const updateFactory = (factory: SiteContent['factory']) => {
-    setContent((prev) => ({ ...prev, factory }));
-  };
+  const deletePage = useCallback(async (pageId: string) => {
+    const updatedPages = content.pages.filter(p => p.id !== pageId);
+    await api.setConfig('pages', updatedPages);
+    setContent(prev => ({ ...prev, pages: updatedPages }));
+    toast.success('已删除页面');
+  }, [content.pages]);
 
-  const updateFAQ = (faq: SiteContent['faq']) => {
-    setContent((prev) => ({ ...prev, faq }));
-  };
+  // ============================================
+  // 全局配置管理
+  // ============================================
+  const updateSiteSettings = useCallback(async (settings: CompanyInfo) => {
+    await api.setConfig('site_settings', settings);
+    setContent(prev => ({ ...prev, companyInfo: settings }));
+    toast.success('公司信息已更新');
+  }, []);
 
-  const updateFooter = (footer: SiteContent['footer']) => {
-    setContent((prev) => ({ ...prev, footer }));
-  };
+  const updateHeader = useCallback(async (header: HeaderContent) => {
+    await api.setConfig('header_config', header);
+    setContent(prev => ({ ...prev, header }));
+    toast.success('导航配置已同步');
+  }, []);
 
-  const updateStatistics = (statistics: SiteContent['home']['statistics']) => {
-    setContent((prev) => ({
-      ...prev,
-      home: { ...prev.home, statistics }
-    }));
-  };
+  const updateFooter = useCallback(async (footer: FooterContent) => {
+    await api.setConfig('footer_config', footer);
+    setContent(prev => ({ ...prev, footer }));
+    toast.success('页脚配置已同步');
+  }, []);
 
-  const updateTestimonials = (testimonials: SiteContent['home']['testimonials']) => {
-    setContent((prev) => ({
-      ...prev,
-      home: { ...prev.home, testimonials }
-    }));
-  };
+  // ============================================
+  // 资源管理
+  // ============================================
+  const uploadImage = useCallback(async (file: File) => {
+    return api.uploadImage(file);
+  }, []);
 
-  const updateBrandValues = (brandValues: SiteContent['home']['brandValues']) => {
-    setContent((prev) => ({
-      ...prev,
-      home: { ...prev.home, brandValues }
-    }));
-  };
-
-  const updateCarousel = (carousel: SiteContent['home']['carousel']) => {
-    setContent((prev) => ({
-      ...prev,
-      home: { ...prev.home, carousel }
-    }));
-  };
+  const deleteImage = useCallback(async (key: string) => {
+    await api.deleteImage(key);
+  }, []);
 
   return (
     <ContentContext.Provider
       value={{
-        content: {
-          ...content,
-          // 确保 categories 可以从顶层访问
-          categories: content.categories || content.products?.categories || [],
-        },
+        content,
         allProducts,
-        updateContent,
+        categories,
+        isLoading,
+        error,
+        refreshData,
+        findPage,
+        clearError,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+        updatePage,
+        addPage,
+        deletePage,
+        updateSiteSettings,
         updateHeader,
-        updateHome,
-        updateProducts,
-        updateCategories,
-        updateAllProducts,
-        updateNewArrivals,
-        updateFactory,
-        updateFAQ,
         updateFooter,
-        updateStatistics,
-        updateTestimonials,
-        updateBrandValues,
-        updateCarousel,
+        uploadImage,
+        deleteImage,
       }}
     >
       {children}

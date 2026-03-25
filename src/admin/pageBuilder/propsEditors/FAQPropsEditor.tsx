@@ -1,37 +1,20 @@
-// FAQ 组件属性编辑器（轻量版）
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useContent } from '@/context/ContentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import type { FAQItem } from '@/types';
+import BilingualInput from '@/admin/components/BilingualInput';
+import type { FAQItem, FAQPropsEditorPropsEditorProps } from '@/types';
 
-interface FAQPropsEditorProps {
-  props: {
-    maxItems?: number;
-    showMoreLink?: boolean;
-  };
-  onUpdate: (props: Record<string, unknown>) => void;
-}
 
-export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
-  const { content, updateFAQ } = useContent();
-  const [localItems, setLocalItems] = useState(content.faq.items);
+export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorPropsEditorProps) {
+  const [localItems, setLocalItems] = useState<FAQItem[]>(props.items || []);
 
-  // 同步 content 变化
-  useEffect(() => {
-    setLocalItems(content.faq.items);
-  }, [content.faq.items]);
-
-  // 保存到全局
   const saveItems = (items: FAQItem[]) => {
     setLocalItems(items);
-    updateFAQ({ ...content.faq, items });
+    onUpdate({ ...props, items });
   };
 
   const addItem = () => {
@@ -60,39 +43,28 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
 
   return (
     <div className="space-y-6">
-      {/* 显示设置 */}
-      <div className="space-y-4 pb-4 border-b">
-        <h4 className="font-medium text-sm text-gray-700">显示设置</h4>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>显示数量</Label>
-            <Input
-              type="number"
-              min={1}
-              max={20}
-              value={props.maxItems || 5}
-              onChange={(e) => onUpdate({ ...props, maxItems: parseInt(e.target.value) || 5 })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>显示更多链接</Label>
-            <div className="pt-2">
-              <Switch
-                checked={props.showMoreLink !== false}
-                onCheckedChange={(checked) => onUpdate({ ...props, showMoreLink: checked })}
-              />
-            </div>
-          </div>
-        </div>
+      {/* 标题设置 */}
+      <div className="space-y-3 pb-4 border-b">
+        <h4 className="font-medium text-sm text-gray-700">标题设置 (Heading)</h4>
+        <BilingualInput
+          label="标题"
+          value={props.title || { zh: '常见问题', en: 'FAQ' }}
+          onChange={(val) => onUpdate({ ...props, title: val })}
+        />
+        <BilingualInput
+          label="副标题"
+          value={props.subtitle || { zh: '在这里您可以找到常见问题的解答', en: 'Find answers to common questions here' }}
+          onChange={(val) => onUpdate({ ...props, subtitle: val })}
+        />
       </div>
 
       {/* FAQ 列表 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-gray-700">FAQ 列表</h4>
+          <h4 className="font-medium text-sm text-gray-700">FAQ 列表 (List)</h4>
           <Button variant="outline" size="sm" onClick={addItem}>
             <Plus className="w-4 h-4 mr-1" />
-            添加
+            添加 (Add)
           </Button>
         </div>
 
@@ -107,7 +79,7 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
                 key={item.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="border rounded-lg overflow-hidden"
+                className="border rounded-lg overflow-hidden bg-white"
               >
                 <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
                   <div className="flex items-center gap-2">
@@ -127,7 +99,7 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
                   {/* 问题 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <Label className="text-xs">问题（中文）</Label>
+                      <Label className="text-xs">问题 (中)</Label>
                       <Input
                         value={item.question.zh}
                         onChange={(e) => updateItem(item.id, 'question', { ...item.question, zh: e.target.value })}
@@ -135,7 +107,7 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">问题（英文）</Label>
+                      <Label className="text-xs">问题 (EN)</Label>
                       <Input
                         value={item.question.en}
                         onChange={(e) => updateItem(item.id, 'question', { ...item.question, en: e.target.value })}
@@ -146,7 +118,7 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
                   {/* 回答 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <Label className="text-xs">回答（中文）</Label>
+                      <Label className="text-xs">回答 (中)</Label>
                       <Textarea
                         value={item.answer.zh}
                         onChange={(e) => updateItem(item.id, 'answer', { ...item.answer, zh: e.target.value })}
@@ -155,7 +127,7 @@ export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorProps) {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">回答（英文）</Label>
+                      <Label className="text-xs">回答 (EN)</Label>
                       <Textarea
                         value={item.answer.en}
                         onChange={(e) => updateItem(item.id, 'answer', { ...item.answer, en: e.target.value })}

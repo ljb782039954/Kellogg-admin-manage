@@ -1,6 +1,6 @@
 // 组件缩略图预览组件
-
-import { type BlockType } from '@/types/pageSchema';
+import React from 'react';
+import { type BlockType } from '@/types';
 
 interface BlockThumbnailProps {
   type: BlockType;
@@ -73,7 +73,7 @@ function NewArrivalsThumbnail() {
   );
 }
 
-// 精选商品缩略图
+// 精选产品缩略图
 function FeaturedProductsThumbnail() {
   return (
     <div className="w-full h-full p-2">
@@ -87,7 +87,7 @@ function FeaturedProductsThumbnail() {
   );
 }
 
-// 商品网格缩略图
+// 产品网格缩略图
 function ProductGridThumbnail() {
   return (
     <div className="w-full h-full p-2">
@@ -152,20 +152,6 @@ function TestimonialsThumbnail() {
   );
 }
 
-// 工厂预览缩略图
-function FactoryPreviewThumbnail() {
-  return (
-    <div className="w-full h-full p-2">
-      <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 rounded relative">
-        <div className="absolute bottom-1 left-1 right-1 bg-black/50 rounded p-0.5">
-          <div className="w-8 h-1 bg-white rounded mb-0.5" />
-          <div className="w-6 h-0.5 bg-white/60 rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // FAQ 预览缩略图
 function FaqPreviewThumbnail() {
   return (
@@ -208,14 +194,15 @@ function ImageBannerThumbnail() {
   );
 }
 
-// 视频区块缩略图
-function VideoSectionThumbnail() {
+// 图片横幅带标签缩略图
+function ImageBannerTagThumbnail() {
   return (
     <div className="w-full h-full p-2">
-      <div className="w-full h-full bg-gray-800 rounded relative flex items-center justify-center">
-        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-          <div className="w-0 h-0 border-l-[6px] border-l-white border-y-[4px] border-y-transparent ml-0.5" />
+      <div className="w-full h-full bg-gradient-to-r from-rose-300 to-orange-300 rounded relative">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-4 h-4 border-2 border-white rounded" />
         </div>
+        <div className="absolute top-2 left-2 bg-white px-2 py-1 rounded text-xs font-bold">NEW</div>
       </div>
     </div>
   );
@@ -250,22 +237,6 @@ function CountdownThumbnail() {
           ))}
         </div>
         <div className="w-8 h-2 bg-white rounded" />
-      </div>
-    </div>
-  );
-}
-
-// 合作伙伴缩略图
-function PartnerLogosThumbnail() {
-  return (
-    <div className="w-full h-full p-2 bg-gray-50">
-      <div className="h-1.5 w-10 bg-gray-300 rounded mb-1.5 mx-auto" />
-      <div className="flex gap-1 justify-center">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="w-8 h-5 bg-white border rounded flex items-center justify-center">
-            <div className="w-5 h-2 bg-gray-300 rounded" />
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -328,7 +299,7 @@ function CtaBannerThumbnail() {
 }
 
 // 缩略图映射表
-const thumbnails: Record<BlockType, React.ReactNode> = {
+const thumbnails: Partial<Record<BlockType, React.ReactNode>> = {
   carousel: <CarouselThumbnail />,
   categories: <CategoriesThumbnail />,
   newArrivals: <NewArrivalsThumbnail />,
@@ -337,17 +308,41 @@ const thumbnails: Record<BlockType, React.ReactNode> = {
   brandValues: <BrandValuesThumbnail />,
   statistics: <StatisticsThumbnail />,
   testimonials: <TestimonialsThumbnail />,
-  factoryPreview: <FactoryPreviewThumbnail />,
-  faqPreview: <FaqPreviewThumbnail />,
+  faq: <FaqPreviewThumbnail />,
   textSection: <TextSectionThumbnail />,
   imageBanner: <ImageBannerThumbnail />,
-  videoSection: <VideoSectionThumbnail />,
+  imageBannerTag: <ImageBannerTagThumbnail />,
   imageText: <ImageTextThumbnail />,
   countdown: <CountdownThumbnail />,
-  partnerLogos: <PartnerLogosThumbnail />,
   gallery: <GalleryThumbnail />,
   featureList: <FeatureListThumbnail />,
   ctaBanner: <CtaBannerThumbnail />,
+  // videoSection: <VideoThumbnail />,
+  partnerLogos: <PartnerLogosThumbnail />,
 };
+
+// 视频缩略图
+// function VideoThumbnail() {
+//   return (
+//     <div className="w-full h-full p-2">
+//       <div className="w-full h-full bg-gray-800 rounded relative flex items-center justify-center">
+//         <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
+//           <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5" />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// 合作伙伴缩略图
+function PartnerLogosThumbnail() {
+  return (
+    <div className="w-full h-full p-2 flex flex-wrap gap-1 justify-center items-center">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="w-5 h-3 bg-gray-200 rounded-sm" />
+      ))}
+    </div>
+  );
+}
 
 export default BlockThumbnail;

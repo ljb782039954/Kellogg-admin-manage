@@ -3,10 +3,10 @@ import { useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Globe,
-  LogOut,
+  // LogOut,
   ChevronRight,
   ShoppingBag,
-  Settings,
+  // Settings,
   FileText,
   Building2,
   PanelTop,
@@ -55,18 +55,18 @@ const menuItems: MenuItem[] = [
     icon: FileText,
   },
   {
-    name: '商品管理',
+    name: '产品管理',
     icon: ShoppingBag,
     children: [
-      { path: '/products', name: '商品编辑' },
-      { path: '/categories', name: '商品分类' },
+      { path: '/products', name: '产品编辑' },
+      { path: '/categories', name: '产品分类' },
     ],
   },
-  {
-    path: '/account',
-    name: '账户设置',
-    icon: Settings,
-  },
+  // {
+  //   path: '/account',
+  //   name: '账户设置',
+  //   icon: Settings,
+  // },
 ];
 
 export default function Dashboard() {
@@ -75,16 +75,17 @@ export default function Dashboard() {
   const location = useLocation();
 
   useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem('admin_logged_in');
-    if (!isLoggedIn) {
-      navigate('/login');
-    }
+    // TODO: 登录验证，已注释
+    // const isLoggedIn = sessionStorage.getItem('admin_logged_in');
+    // if (!isLoggedIn) {
+    //   navigate('/login');
+    // }
   }, [navigate]);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_logged_in');
-    navigate('/login');
-  };
+  // const handleLogout = () => {
+  //   sessionStorage.removeItem('admin_logged_in');
+  //   navigate('/login');
+  // };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -93,10 +94,10 @@ export default function Dashboard() {
         {/* Logo */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3 mb-2">
-             {siteSettings.brand.logo && (
-               <img src={siteSettings.brand.logo} alt="Logo" className="w-8 h-8 object-contain" />
-             )}
-             <h1 className="text-xl font-bold text-gray-800">{siteSettings.brand.name.zh}</h1>
+            {siteSettings.brand.logo && (
+              <img src={siteSettings.brand.logo} alt="Logo" className="w-8 h-8 object-contain" />
+            )}
+            <h1 className="text-xl font-bold text-gray-800">{siteSettings.brand.name.zh}</h1>
           </div>
           <p className="text-sm text-gray-500">后台管理系统</p>
         </div>
@@ -109,10 +110,9 @@ export default function Dashboard() {
                 to={item.path || '#'}
                 onClick={(e) => !item.path && e.preventDefault()}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    (item.path && isActive) || item.children?.some((c) => location.pathname.startsWith(c.path))
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${(item.path && isActive) || item.children?.some((c) => location.pathname.startsWith(c.path))
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                   }`
                 }
               >
@@ -129,10 +129,9 @@ export default function Dashboard() {
                       key={child.path}
                       to={child.path}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-all ${
-                          isActive
-                            ? 'bg-gray-100 text-gray-800 font-medium'
-                            : 'text-gray-500 hover:bg-gray-50'
+                        `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-all ${isActive
+                          ? 'bg-gray-100 text-gray-800 font-medium'
+                          : 'text-gray-500 hover:bg-gray-50'
                         }`
                       }
                     >
@@ -162,7 +161,7 @@ export default function Dashboard() {
         </div>
 
         {/* Logout */}
-        <div className="p-4 border-t border-gray-100">
+        {/* <div className="p-4 border-t border-gray-100">
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 w-full text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -170,7 +169,7 @@ export default function Dashboard() {
             <LogOut className="w-5 h-5" />
             <span>退出登录</span>
           </button>
-        </div>
+        </div> */}
       </aside>
 
       {/* Main Content */}

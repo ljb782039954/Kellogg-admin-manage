@@ -1,6 +1,4 @@
 // 图片横幅属性编辑器
-
-import { type ImageBannerBlockProps } from '@/types/pageSchema';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -11,19 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import BilingualInput from '../../components/BilingualInput';
-import ImageInput from '../../components/ImageInput';
+import BilingualInput from '@/admin/components/BilingualInput';
+import ImageInput from '@/admin/components/ImageInput';
+import type { ImageBannerPropsEditorProps } from '@/types';
 
-interface Props {
-  props: ImageBannerBlockProps;
-  onUpdate: (props: ImageBannerBlockProps) => void;
-}
-
-export function ImageBannerPropsEditor({ props, onUpdate }: Props) {
-  const handleChange = <K extends keyof ImageBannerBlockProps>(
-    key: K,
-    value: ImageBannerBlockProps[K]
-  ) => {
+export function ImageBannerPropsEditor({ props, onUpdate }: ImageBannerPropsEditorProps) {
+  const handleChange = (key: string, value: unknown) => {
     onUpdate({ ...props, [key]: value });
   };
 
@@ -60,7 +51,13 @@ export function ImageBannerPropsEditor({ props, onUpdate }: Props) {
 
       {/* 链接 */}
       <div className="space-y-2">
-        <Label>点击链接（可选）</Label>
+        <Label>按钮文字</Label>
+        <BilingualInput
+          value={props.buttonText || { zh: '', en: '' }}
+          onChange={(value) => handleChange('ctaText', value)}
+          placeholder={{ zh: '请输入中文按钮文字', en: 'Enter English button text' }}
+        />
+        <Label>点击链接 (URL)</Label>
         <Input
           value={props.linkUrl || ''}
           onChange={(e) => handleChange('linkUrl', e.target.value)}
@@ -73,7 +70,7 @@ export function ImageBannerPropsEditor({ props, onUpdate }: Props) {
         <Label>横幅高度</Label>
         <Select
           value={props.height || 'medium'}
-          onValueChange={(value: 'small' | 'medium' | 'large' | 'full') =>
+          onValueChange={(value) =>
             handleChange('height', value)
           }
         >
@@ -81,10 +78,10 @@ export function ImageBannerPropsEditor({ props, onUpdate }: Props) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="small">小 (200px)</SelectItem>
-            <SelectItem value="medium">中 (400px)</SelectItem>
-            <SelectItem value="large">大 (600px)</SelectItem>
-            <SelectItem value="full">全屏</SelectItem>
+            <SelectItem value="small">小 (Small - 200px)</SelectItem>
+            <SelectItem value="medium">中 (Medium - 400px)</SelectItem>
+            <SelectItem value="large">大 (Large - 600px)</SelectItem>
+            <SelectItem value="full">全屏 (Full Screen)</SelectItem>
           </SelectContent>
         </Select>
       </div>

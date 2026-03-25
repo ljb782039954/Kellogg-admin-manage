@@ -1,6 +1,5 @@
 // 布局属性编辑器（用于全局数据组件的局部配置）
-
-import { type PageBlock } from '@/types/pageSchema';
+import { type PageBlock } from '@/types';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -22,12 +21,12 @@ import { useState } from 'react';
 
 interface Props {
   block: PageBlock;
-  onUpdate: (props: PageBlock['props']) => void;
+  onUpdate: (content: any) => void;
 }
 
 export function LayoutPropsEditor({ block, onUpdate }: Props) {
   const [isOpen, setIsOpen] = useState(true);
-  const props = block.props as Record<string, unknown>;
+  const content = block.content as Record<string, unknown>;
 
   // 根据组件类型决定显示哪些布局选项
   const layoutOptions = getLayoutOptions(block.type);
@@ -35,13 +34,13 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
   if (layoutOptions.length === 0) return null;
 
   const handleChange = (key: string, value: unknown) => {
-    onUpdate({ ...props, [key]: value });
+    onUpdate({ ...content, [key]: value });
   };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border rounded-lg">
       <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-gray-50">
-        <span className="font-medium text-sm">显示设置</span>
+        <span className="font-medium text-sm">显示设置 (Display)</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </CollapsibleTrigger>
       <CollapsibleContent className="p-4 pt-0 space-y-4">
@@ -49,7 +48,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
           <div className="space-y-2">
             <Label>区块标题</Label>
             <BilingualInput
-              value={(props.title as { zh: string; en: string }) || { zh: '', en: '' }}
+              value={(content.title as { zh: string; en: string }) || { zh: '', en: '' }}
               onChange={(value) => handleChange('title', value)}
               placeholder={{ zh: '请输入中文标题', en: 'Enter English title' }}
             />
@@ -60,7 +59,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
           <div className="space-y-2">
             <Label>副标题</Label>
             <BilingualInput
-              value={(props.subtitle as { zh: string; en: string }) || { zh: '', en: '' }}
+              value={(content.subtitle as { zh: string; en: string }) || { zh: '', en: '' }}
               onChange={(value) => handleChange('subtitle', value)}
               placeholder={{ zh: '请输入中文副标题', en: 'Enter English subtitle' }}
             />
@@ -74,7 +73,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
               type="number"
               min={1}
               max={50}
-              value={(props.maxItems as number) || 8}
+              value={(content.maxItems as number) || 8}
               onChange={(e) => handleChange('maxItems', parseInt(e.target.value) || 8)}
             />
           </div>
@@ -84,15 +83,15 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
           <div className="space-y-2">
             <Label>布局方式</Label>
             <Select
-              value={(props.layout as string) || 'grid'}
+              value={(content.layout as string) || 'grid'}
               onValueChange={(value) => handleChange('layout', value)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="grid">网格布局</SelectItem>
-                <SelectItem value="slider">滑动布局</SelectItem>
+                <SelectItem value="grid">网格布局 (Grid)</SelectItem>
+                <SelectItem value="slider">滑动布局 (Slider)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -102,7 +101,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
           <div className="flex items-center justify-between">
             <Label>自动播放</Label>
             <Switch
-              checked={(props.autoPlay as boolean) ?? true}
+              checked={(content.autoPlay as boolean) ?? true}
               onCheckedChange={(checked) => handleChange('autoPlay', checked)}
             />
           </div>
@@ -116,7 +115,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
               min={1000}
               max={10000}
               step={500}
-              value={(props.interval as number) || 5000}
+              value={(content.interval as number) || 5000}
               onChange={(e) => handleChange('interval', parseInt(e.target.value) || 5000)}
             />
           </div>
@@ -128,7 +127,7 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
               <Label>显示"查看更多"</Label>
             </div>
             <Switch
-              checked={(props.showMoreLink as boolean) ?? true}
+              checked={(content.showMoreLink as boolean) ?? true}
               onCheckedChange={(checked) => handleChange('showMoreLink', checked)}
             />
           </div>
@@ -138,17 +137,17 @@ export function LayoutPropsEditor({ block, onUpdate }: Props) {
           <div className="flex items-center justify-between">
             <Label>显示按钮</Label>
             <Switch
-              checked={(props.showButton as boolean) ?? true}
+              checked={(content.showButton as boolean) ?? true}
               onCheckedChange={(checked) => handleChange('showButton', checked)}
             />
           </div>
         )}
 
-        {layoutOptions.includes('buttonText') && (props.showButton as boolean) !== false && (
+        {layoutOptions.includes('buttonText') && (content.showButton as boolean) !== false && (
           <div className="space-y-2">
             <Label>按钮文字</Label>
             <BilingualInput
-              value={(props.buttonText as { zh: string; en: string }) || { zh: '了解更多', en: 'Learn More' }}
+              value={(content.buttonText as { zh: string; en: string }) || { zh: '了解更多', en: 'Learn More' }}
               onChange={(value) => handleChange('buttonText', value)}
               placeholder={{ zh: '按钮文字', en: 'Button text' }}
             />
@@ -172,7 +171,7 @@ function getLayoutOptions(type: string): string[] {
     case 'brandValues':
     case 'statistics':
       return ['title', 'subtitle'];
-    case 'factoryPreview':
+    case 'aboutPreview':
       return ['title', 'subtitle', 'showButton', 'buttonText'];
     case 'faqPreview':
       return ['title', 'subtitle', 'maxItems', 'showMoreLink'];

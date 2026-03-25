@@ -1,6 +1,5 @@
 // 页面布局编辑器主组件
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext,
@@ -17,8 +16,8 @@ import {
 } from '@dnd-kit/sortable';
 import { nanoid } from 'nanoid';
 import { Save, Eye, RotateCcw, Plus, ArrowLeft, Settings } from 'lucide-react';
-import { type PageSchema, type PageBlock, isFixedPage } from '@/types/pageSchema';
-import { getDefaultSchema } from '@/config/defaultPageSchemas';
+import { useContent } from '@/context/ContentContext';
+import { type CustomPage, type PageBlock } from '@/types';
 import { BlockList } from './BlockList';
 import { BlockPropsEditor } from './BlockPropsEditor';
 import { AddBlockDialog } from './AddBlockDialog';
@@ -46,25 +45,27 @@ import {
 } from '@/components/ui/sheet';
 import BilingualInput from '../components/BilingualInput';
 
-interface PageLayoutEditorProps {
-  pageId?: string; // 可选，用于直接传入 pageId
-}
-
-// localStorage 键名
-const getStorageKey = (pageId: string) => `page_schema_${pageId}`;
-
-export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) {
+export function PageLayoutEditor() {
   const navigate = useNavigate();
-  const params = useParams();
-  const pageId = propPageId || params.pageId || 'home';
+  const { pageId } = useParams<{ pageId: string }>();
+  const { findPage, updatePage } = useContent();
+  const { toast } = useToast();
 
-  const [schema, setSchema] = useState<PageSchema | null>(null);
+  const page = useMemo(() => findPage(pageId || ''), [findPage, pageId]);
+
+  const [localPage, setLocalPage] = useState<CustomPage | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const { toast } = useToast();
+
+  // 当 page 加载后，且本地没有数据时，同步到本地状态
+  useEffect(() => {
+    if (page && !localPage) {
+      setLocalPage(JSON.parse(JSON.stringify(page))); // 深拷贝
+    }
+  }, [page, localPage]);
 
   // 拖拽传感器配置
   const sensors = useSensors(
@@ -78,169 +79,126 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
     })
   );
 
-  // 加载页面 Schema
-  useEffect(() => {
-    loadSchema();
-  }, [pageId]);
+  // 保存更改
+  const handleSave = useCallback(async () => {
+    if (!localPage || !pageId) return;
 
-  const loadSchema = useCallback(() => {
-    const storageKey = getStorageKey(pageId);
-    const stored = localStorage.getItem(storageKey);
-
-    if (stored) {
-      try {
-        setSchema(JSON.parse(stored));
-      } catch {
-        setSchema(getDefaultSchema(pageId));
-      }
-    } else {
-      setSchema(getDefaultSchema(pageId));
-    }
-    setHasChanges(false);
-  }, [pageId]);
-
-  // 保存 Schema
-  const handleSave = useCallback(() => {
-    if (!schema) return;
-
-    const updatedSchema = {
-      ...schema,
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(getStorageKey(pageId), JSON.stringify(updatedSchema));
-    setSchema(updatedSchema);
+    await updatePage(pageId, localPage);
     setHasChanges(false);
 
     toast({
       title: '保存成功',
-      description: '页面已保存',
+      description: '页面更改已保存到服务器',
     });
-  }, [schema, pageId, toast]);
+  }, [localPage, pageId, updatePage, toast]);
 
-  // 更新 Schema（标记有变更）
-  const updateSchema = useCallback((newSchema: PageSchema) => {
-    setSchema(newSchema);
+  // 更新本地页面状态
+  const updateLocalPage = useCallback((updates: Partial<CustomPage>) => {
+    setLocalPage(prev => prev ? { ...prev, ...updates } : null);
     setHasChanges(true);
   }, []);
-
-  // 更新页面元信息
-  const handleUpdatePageMeta = useCallback((field: string, value: unknown) => {
-    if (!schema) return;
-    updateSchema({
-      ...schema,
-      [field]: value,
-    });
-  }, [schema, updateSchema]);
 
   // 拖拽结束处理
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id || !schema) return;
+    if (!over || active.id === over.id || !localPage) return;
 
-    const oldIndex = schema.blocks.findIndex((b) => b.id === active.id);
-    const newIndex = schema.blocks.findIndex((b) => b.id === over.id);
+    const oldIndex = localPage.blocks.findIndex((b) => b.id === active.id);
+    const newIndex = localPage.blocks.findIndex((b) => b.id === over.id);
 
-    updateSchema({
-      ...schema,
-      blocks: arrayMove(schema.blocks, oldIndex, newIndex),
+    updateLocalPage({
+      blocks: arrayMove(localPage.blocks, oldIndex, newIndex),
     });
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 添加区块
   const handleAddBlock = useCallback((block: PageBlock) => {
-    if (!schema) return;
-    updateSchema({
-      ...schema,
-      blocks: [...schema.blocks, block],
+    if (!localPage) return;
+    updateLocalPage({
+      blocks: [...localPage.blocks, block],
     });
     setSelectedBlockId(block.id);
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 删除区块
   const handleRemoveBlock = useCallback((blockId: string) => {
-    if (!schema) return;
-    updateSchema({
-      ...schema,
-      blocks: schema.blocks.filter((b) => b.id !== blockId),
+    if (!localPage) return;
+    updateLocalPage({
+      blocks: localPage.blocks.filter((b) => b.id !== blockId),
     });
     if (selectedBlockId === blockId) {
       setSelectedBlockId(null);
     }
-  }, [schema, selectedBlockId, updateSchema]);
+  }, [localPage, selectedBlockId, updateLocalPage]);
 
   // 切换区块可见性
   const handleToggleBlock = useCallback((blockId: string) => {
-    if (!schema) return;
-    updateSchema({
-      ...schema,
-      blocks: schema.blocks.map((b) =>
-        b.id === blockId ? { ...b, enabled: !b.enabled } : b
+    if (!localPage) return;
+    updateLocalPage({
+      blocks: localPage.blocks.map((b) =>
+        b.id === blockId ? { ...b, isVisible: !b.isVisible } : b
       ),
     });
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 上移区块
   const handleMoveBlockUp = useCallback((blockId: string) => {
-    if (!schema) return;
-    const index = schema.blocks.findIndex((b) => b.id === blockId);
+    if (!localPage) return;
+    const index = localPage.blocks.findIndex((b) => b.id === blockId);
     if (index <= 0) return;
-    updateSchema({
-      ...schema,
-      blocks: arrayMove(schema.blocks, index, index - 1),
+    updateLocalPage({
+      blocks: arrayMove(localPage.blocks, index, index - 1),
     });
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 下移区块
   const handleMoveBlockDown = useCallback((blockId: string) => {
-    if (!schema) return;
-    const index = schema.blocks.findIndex((b) => b.id === blockId);
-    if (index < 0 || index >= schema.blocks.length - 1) return;
-    updateSchema({
-      ...schema,
-      blocks: arrayMove(schema.blocks, index, index + 1),
+    if (!localPage) return;
+    const index = localPage.blocks.findIndex((b) => b.id === blockId);
+    if (index < 0 || index >= localPage.blocks.length - 1) return;
+    updateLocalPage({
+      blocks: arrayMove(localPage.blocks, index, index + 1),
     });
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 更新区块属性
-  const handleUpdateBlockProps = useCallback((blockId: string, props: PageBlock['props']) => {
-    if (!schema) return;
-    updateSchema({
-      ...schema,
-      blocks: schema.blocks.map((b) =>
-        b.id === blockId ? { ...b, props } : b
+  const handleUpdateBlockProps = useCallback((blockId: string, content: any) => {
+    if (!localPage) return;
+    updateLocalPage({
+      blocks: localPage.blocks.map((b) =>
+        b.id === blockId ? { ...b, content } : b
       ),
     });
-  }, [schema, updateSchema]);
+  }, [localPage, updateLocalPage]);
 
   // 重置为默认
   const handleReset = useCallback(() => {
-    const defaultSchema = getDefaultSchema(pageId);
+    if (!localPage) return;
+
+    let defaultBlocks: PageBlock[] = [];
+
     // 为默认 blocks 生成新的 ID
-    defaultSchema.blocks = defaultSchema.blocks.map((block) => ({
+    defaultBlocks = defaultBlocks.map((block) => ({
       ...block,
-      id: nanoid(),
+      id: `block_${nanoid(8)}`,
     }));
-    updateSchema(defaultSchema);
+
+    updateLocalPage({ blocks: defaultBlocks });
     setSelectedBlockId(null);
     setIsResetDialogOpen(false);
 
     toast({
       title: '已重置',
-      description: '页面布局已恢复为默认设置',
+      description: '页面布局已恢复为默认积木块设置',
     });
-  }, [pageId, updateSchema, toast]);
+  }, [localPage, updateLocalPage, toast]);
 
   // 预览
   const handlePreview = useCallback(() => {
-    // 先保存再预览
-    if (hasChanges) {
-      handleSave();
-    }
-    // 打开新窗口预览
-    const previewUrl = schema?.slug || '/';
+    const previewUrl = localPage?.path || '/';
+    // 假设 webApp 在 5173 开端口
     window.open(`http://localhost:5173${previewUrl}?preview=true`, '_blank');
-  }, [hasChanges, handleSave, schema]);
+  }, [localPage]);
 
   // 返回列表
   const handleBack = useCallback(() => {
@@ -251,16 +209,15 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
     navigate('/pages');
   }, [hasChanges, navigate]);
 
-  const selectedBlock = schema?.blocks.find((b) => b.id === selectedBlockId);
-  const isFixed = isFixedPage(pageId);
-
-  if (!schema) {
+  if (!localPage) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
+
+  const selectedBlock = localPage.blocks.find((b) => b.id === selectedBlockId);
 
   return (
     <div className="h-full flex flex-col">
@@ -272,9 +229,9 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
             返回
           </Button>
           <div className="border-l pl-4">
-            <h1 className="text-lg font-semibold">{schema.title.zh}</h1>
+            <h1 className="text-lg font-semibold">{localPage.title.zh}</h1>
             <p className="text-sm text-gray-500">
-              {schema.slug} · {schema.blocks.length} 个组件
+              {localPage.path} · {localPage.blocks.length} 个积木块
               {hasChanges && <span className="text-orange-500 ml-2">• 有未保存的更改</span>}
             </p>
           </div>
@@ -292,49 +249,38 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
               <SheetHeader>
                 <SheetTitle>页面设置</SheetTitle>
                 <SheetDescription>
-                  编辑页面的基本信息
+                  编辑页面的基本信息和路由
                 </SheetDescription>
               </SheetHeader>
               <div className="space-y-6 py-6">
                 <div className="space-y-2">
                   <Label>页面标题</Label>
                   <BilingualInput
-                    value={schema.title}
-                    onChange={(value) => handleUpdatePageMeta('title', value)}
+                    value={localPage.title}
+                    onChange={(title) => updateLocalPage({ title })}
                     placeholder={{ zh: '请输入中文标题', en: 'Enter English title' }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>页面描述 (SEO)</Label>
-                  <BilingualInput
-                    value={schema.description || { zh: '', en: '' }}
-                    onChange={(value) => handleUpdatePageMeta('description', value)}
-                    placeholder={{ zh: '页面描述', en: 'Page description' }}
-                    multiline
-                  />
-                </div>
-                {!isFixed && (
+                {!localPage.isFixed && (
                   <div className="space-y-2">
-                    <Label>URL 路径</Label>
+                    <Label htmlFor="path">URL 路径</Label>
                     <div className="flex items-center">
                       <span className="text-gray-500 mr-1">/</span>
                       <Input
-                        value={schema.slug.replace(/^\//, '')}
+                        id="path"
+                        value={localPage.path.replace(/^\//, '')}
                         onChange={(e) => {
-                          const newSlug = `/${e.target.value.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}`;
-                          handleUpdatePageMeta('slug', newSlug);
+                          const newPath = `/${e.target.value.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}`;
+                          updateLocalPage({ path: newPath });
                         }}
                         placeholder="about-us"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">
-                      只能使用小写字母、数字和连字符
-                    </p>
                   </div>
                 )}
-                {isFixed && (
+                {localPage.isFixed && (
                   <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                    <p>这是一个固定页面，URL 路径不能修改。</p>
+                    <p>这是一个固定系统页面，路由路径无法修改。</p>
                   </div>
                 )}
               </div>
@@ -358,7 +304,7 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
 
       {/* 主内容区 */}
       <div className="flex-1 flex overflow-hidden">
-        {/* 左侧：区块列表 */}
+        {/* 左侧：积木块列表 */}
         <div className="w-80 border-r bg-gray-50/50 flex flex-col">
           <div className="p-4 flex-1 overflow-y-auto">
             <DndContext
@@ -367,7 +313,7 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
               onDragEnd={handleDragEnd}
             >
               <BlockList
-                blocks={schema.blocks}
+                blocks={localPage.blocks}
                 selectedId={selectedBlockId}
                 onSelect={setSelectedBlockId}
                 onToggle={handleToggleBlock}
@@ -380,11 +326,11 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
             <div className="mt-4 border-t pt-4">
               <Button
                 variant="outline"
-                className="w-full bg-green-200"
+                className="w-full bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                添加组件
+                添加积木块
               </Button>
             </div>
           </div>
@@ -396,27 +342,27 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
             {selectedBlock ? (
               <BlockPropsEditor
                 block={selectedBlock}
-                onUpdate={(props) => handleUpdateBlockProps(selectedBlock.id, props)}
+                onUpdate={(content) => handleUpdateBlockProps(selectedBlock.id, content)}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                   <Eye className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-sm">选择左侧的组件进行编辑</p>
-                <p className="text-xs mt-1">拖拽组件可调整显示顺序</p>
+                <p className="text-sm font-medium">选择左侧的积木块进行编辑</p>
+                <p className="text-xs mt-1">拖拽积木块可以调整在前端页面的显示顺序</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* 添加组件弹窗 */}
+      {/* 添加积木块弹窗 */}
       <AddBlockDialog
         open={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         onAdd={handleAddBlock}
-        existingBlocks={schema.blocks}
+        existingBlocks={localPage.blocks}
       />
 
       {/* 重置确认弹窗 */}
@@ -425,7 +371,7 @@ export function PageLayoutEditor({ pageId: propPageId }: PageLayoutEditorProps) 
           <AlertDialogHeader>
             <AlertDialogTitle>确认重置？</AlertDialogTitle>
             <AlertDialogDescription>
-              这将把页面布局恢复为默认设置，当前的所有更改都将丢失。此操作无法撤销。
+              这将把当前页面的积木块布局恢复为系统默认设置。此操作无法撤销。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
