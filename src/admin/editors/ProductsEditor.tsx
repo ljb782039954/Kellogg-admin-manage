@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, Star, TrendingUp, Calendar, Tag, Layers, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Star, TrendingUp, Calendar, Tag, Layers, ChevronDown, ChevronUp, Loader2, ShieldAlert, ClipboardList, Palette, MoveRight } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { useLanguage } from '@/context/LanguageContext';
 import BilingualInput from '@/admin/components/BilingualInput';
@@ -113,6 +113,16 @@ export default function ProductsEditor() {
             is_featured: localProduct.isFeatured,
             image: localProduct.image,
             images: localProduct.images,
+            fabric_zh: localProduct.fabric?.zh,
+            fabric_en: localProduct.fabric?.en,
+            notes_zh: localProduct.notes?.zh,
+            notes_en: localProduct.notes?.en,
+            sizes: localProduct.sizes,
+            colors: localProduct.colors?.map(c => ({
+              name_zh: c.name.zh,
+              name_en: c.name.en,
+              image: c.image
+            })),
           });
         } else {
           // 检查是否有变化
@@ -127,7 +137,11 @@ export default function ProductsEditor() {
             localProduct.releaseDate !== remoteProduct.releaseDate ||
             localProduct.isFeatured !== remoteProduct.isFeatured ||
             localProduct.image !== remoteProduct.image ||
-            JSON.stringify(localProduct.images) !== JSON.stringify(remoteProduct.images);
+            JSON.stringify(localProduct.images) !== JSON.stringify(remoteProduct.images) ||
+            JSON.stringify(localProduct.fabric) !== JSON.stringify(remoteProduct.fabric) ||
+            JSON.stringify(localProduct.notes) !== JSON.stringify(remoteProduct.notes) ||
+            JSON.stringify(localProduct.sizes) !== JSON.stringify(remoteProduct.sizes) ||
+            JSON.stringify(localProduct.colors) !== JSON.stringify(remoteProduct.colors);
 
           if (hasChanges) {
             await apiUpdateProduct(localProduct.id, {
@@ -146,6 +160,16 @@ export default function ProductsEditor() {
               is_featured: localProduct.isFeatured,
               image: localProduct.image,
               images: localProduct.images,
+              fabric_zh: localProduct.fabric?.zh,
+              fabric_en: localProduct.fabric?.en,
+              notes_zh: localProduct.notes?.zh,
+              notes_en: localProduct.notes?.en,
+              sizes: localProduct.sizes,
+              colors: localProduct.colors?.map(c => ({
+                name_zh: c.name.zh,
+                name_en: c.name.en,
+                image: c.image
+              })),
             });
           }
         }
@@ -519,6 +543,19 @@ export default function ProductsEditor() {
                               value={product.tag || { zh: '', en: '' }}
                               onChange={(val) => updateLocalProduct(product.id, 'tag', val)}
                             />
+
+                            <div className="pt-4 border-t border-gray-100 space-y-4">
+                              <BilingualInput
+                                label="面料说明"
+                                value={product.fabric || { zh: '', en: '' }}
+                                onChange={(val) => updateLocalProduct(product.id, 'fabric', val)}
+                              />
+                              <BilingualInput
+                                label="注意事项"
+                                value={product.notes || { zh: '', en: '' }}
+                                onChange={(val) => updateLocalProduct(product.id, 'notes', val)}
+                              />
+                            </div>
                           </div>
 
 
@@ -530,7 +567,7 @@ export default function ProductsEditor() {
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-1 text-gray-400">
                             <Tag className="w-3 h-3" /> 详情页图集
                           </label>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="flex flex-wrap gap-4">
                             {(product.images || []).map((img, imgIdx) => (
                               <div key={imgIdx} className="relative aspect-square rounded-lg group/img">
                                 <ImageInput
@@ -560,14 +597,142 @@ export default function ProductsEditor() {
                                 const nextImages = [...(product.images || []), ''];
                                 updateLocalProduct(product.id, 'images', nextImages);
                               }}
-                              className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all bg-gray-50/50"
+                              className="px-4 py-3 aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all bg-gray-50/50"
                             >
                               <Plus className="w-4 h-4" />
-                              <span className="text-[10px] font-bold">加图</span>
+                              <span className="text-[10px] font-bold">增加图片</span>
                             </button>
                           </div>
-                          <p className="mt-2 text-[10px] text-gray-400">点击"加图"后，在下方上传图片。</p>
+                          <p className="mt-2 text-[10px] text-gray-400">点击"增加图片"后，在下方上传图片。</p>
 
+                          {/* Sizes Management */}
+                          <div className="mt-8 pt-6 border-t border-gray-100">
+                            <label className="block text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-1">
+                              <ClipboardList className="w-3 h-3" /> 尺码管理
+                            </label>
+                            <div className="space-y-3 flex flex-wrap gap-3">
+                              {(product.sizes || []).map((size, sIdx) => (
+                                <div key={sIdx} className="flex items-center gap-3 bg-black/5 p-2 rounded-xl relative group/size">
+                                  <div className="w-24 items-center space-y-3">
+                                    <input
+                                      placeholder="尺码名称 (如 S, M, L)"
+                                      value={size.name}
+                                      onChange={(e) => {
+                                        const nextSizes = [...(product.sizes || [])];
+                                        nextSizes[sIdx] = { ...size, name: e.target.value };
+                                        updateLocalProduct(product.id, 'sizes', nextSizes);
+                                      }}
+                                      className="max-w-24 text-sm font-medium border-black/20 border-1"
+                                    />
+                                    <div className="w-24 h-24 flex-shrink-0">
+                                      <ImageInput
+                                        value={size.image || ''}
+                                        onChange={(val) => {
+                                          const nextSizes = [...(product.sizes || [])];
+                                          nextSizes[sIdx] = { ...size, image: val };
+                                          updateLocalProduct(product.id, 'sizes', nextSizes);
+                                        }}
+                                        aspectRatio="square"
+                                        className="!space-y-0"
+                                      />
+                                    </div>
+
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const nextSizes = [...(product.sizes || [])];
+                                      nextSizes.splice(sIdx, 1);
+                                      updateLocalProduct(product.id, 'sizes', nextSizes);
+                                    }}
+                                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover/size:opacity-100 transition-opacity z-10 shadow-sm"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                onClick={() => {
+                                  const nextSizes = [...(product.sizes || []), { name: '', image: '' }];
+                                  updateLocalProduct(product.id, 'sizes', nextSizes);
+                                }}
+                                className="px-4 py-2 border border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all flex items-center justify-center gap-1"
+                              >
+                                <Plus className="w-3.5 h-3.5" /> 添加新尺码
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Colors Management */}
+                          <div className="mt-8 pt-6 border-t border-gray-100">
+                            <label className="block text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-1">
+                              <Palette className="w-3 h-3" /> 颜色管理
+                            </label>
+                            <div className="flex flex-wrap gap-3">
+                              {(product.colors || []).map((color, cIdx) => (
+                                <div key={cIdx} className="bg-gray-50 p-3 rounded-xl space-y-3 relative group/color">
+                                  <div className="flex gap-3">
+                                    <div className="space-y-3">
+                                      <div className="w-24 h-24 flex-shrink-0">
+                                        <ImageInput
+                                          value={color.image || ''}
+                                          onChange={(val) => {
+                                            const nextColors = [...(product.colors || [])];
+                                            nextColors[cIdx] = { ...color, image: val };
+                                            updateLocalProduct(product.id, 'colors', nextColors);
+                                          }}
+                                          aspectRatio="square"
+                                          className="!space-y-0"
+                                        />
+                                      </div>
+                                      <div className="flex-1 space-y-2 max-w-24">
+                                        <div className="grid grid-cols-1 gap-2">
+                                          <input
+                                            placeholder="中文名"
+                                            value={color.name.zh}
+                                            onChange={(e) => {
+                                              const nextColors = [...(product.colors || [])];
+                                              nextColors[cIdx] = { ...color, name: { ...color.name, zh: e.target.value } };
+                                              updateLocalProduct(product.id, 'colors', nextColors);
+                                            }}
+                                            className="w-full bg-white px-3 py-1.5 rounded-lg border-none text-xs focus:ring-1 focus:ring-gray-900"
+                                          />
+                                          <input
+                                            placeholder="英文名"
+                                            value={color.name.en}
+                                            onChange={(e) => {
+                                              const nextColors = [...(product.colors || [])];
+                                              nextColors[cIdx] = { ...color, name: { ...color.name, en: e.target.value } };
+                                              updateLocalProduct(product.id, 'colors', nextColors);
+                                            }}
+                                            className="w-full bg-white px-3 py-1.5 rounded-lg border-none text-xs focus:ring-1 focus:ring-gray-900"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        const nextColors = [...(product.colors || [])];
+                                        nextColors.splice(cIdx, 1);
+                                        updateLocalProduct(product.id, 'colors', nextColors);
+                                      }}
+                                      className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover/color:opacity-100 transition-opacity z-10 shadow-sm"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                              <button
+                                onClick={() => {
+                                  const nextColors = [...(product.colors || []), { name: { zh: '', en: '' }, image: '' }];
+                                  updateLocalProduct(product.id, 'colors', nextColors);
+                                }}
+                                className="px-4 py-2 border border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all flex items-center justify-center gap-1"
+                              >
+                                <Plus className="w-3.5 h-3.5" /> 添加新颜色
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

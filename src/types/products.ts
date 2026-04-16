@@ -29,6 +29,10 @@ export interface Product {
   releaseDate?: string;
   description?: Translation;
   isFeatured: boolean;
+  fabric?: Translation;
+  notes?: Translation;
+  sizes?: { name: string; image?: string }[];
+  colors?: { name: Translation; image?: string }[];
 }
 
 // 用于 api 接口
@@ -49,6 +53,12 @@ export interface ProductInput {
   is_featured?: boolean;
   image?: string;
   images?: string[];
+  fabric_zh?: string;
+  fabric_en?: string;
+  notes_zh?: string;
+  notes_en?: string;
+  sizes?: { name: string; image?: string }[];
+  colors?: { name_zh: string; name_en: string; image?: string }[];
   sort_order?: number;
 }
 
