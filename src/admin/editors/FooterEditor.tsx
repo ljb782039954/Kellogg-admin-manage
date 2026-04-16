@@ -1,6 +1,6 @@
 // Footer 组件管理编辑器
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Save, GripVertical, AlertTriangle, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
@@ -114,37 +114,39 @@ function FooterPreview({ footer, language }: { footer: FooterContent; language: 
 
 export default function FooterEditor() {
   const { content, updateFooter } = useContent();
-  const [localFooter, setLocalFooter] = useState<FooterContent>(content.footer);
+  const [localFooter, setLocalFooter] = useState<FooterContent>(() => {
+    const footer = content.footer;
+    // 转换旧格式数据，确保每个链接都有 linkType
+    const needsConversion = footer.linkGroups.some((group) =>
+      group.links.some((link) => !('linkType' in link))
+    );
+
+    if (needsConversion) {
+      return {
+        ...footer,
+        linkGroups: footer.linkGroups.map((group) => ({
+          ...group,
+          links: group.links.map((link) => ({
+            ...link,
+            linkType: (link as any).linkType || (link.href?.startsWith('http') ? 'external' : 'internal'),
+          })),
+        })),
+      };
+    }
+    return footer;
+  });
+
   const [saved, setSaved] = useState(false);
-  const [hasDeletedPages, setHasDeletedPages] = useState(false);
   const [previewLang, setPreviewLang] = useState<'zh' | 'en'>('zh');
 
-  // 检查是否有已删除的页面链接
-  useEffect(() => {
-    const hasDeleted = localFooter.linkGroups.some((group) =>
+  // 计算是否有已删除的页面链接 (派生状态)
+  const hasDeletedPages = useMemo(() => {
+    return localFooter.linkGroups.some((group) =>
       group.links.some(
         (link) => !checkPageExists(link.href, link.linkType, content.pages)
       )
     );
-    setHasDeletedPages(hasDeleted);
   }, [localFooter.linkGroups, content.pages]);
-
-  // 将旧格式转换为新格式
-  useEffect(() => {
-    const needsConversion = localFooter.linkGroups.some((group) =>
-      group.links.some((link) => !('linkType' in link))
-    );
-    if (needsConversion) {
-      const convertedGroups = localFooter.linkGroups.map((group) => ({
-        ...group,
-        links: group.links.map((link) => ({
-          ...link,
-          linkType: (link.href?.startsWith('http') ? 'external' : 'internal') as 'internal' | 'external',
-        })),
-      }));
-      setLocalFooter({ ...localFooter, linkGroups: convertedGroups });
-    }
-  }, []);
 
   const handleSave = () => {
     updateFooter(localFooter);
@@ -376,7 +378,7 @@ export default function FooterEditor() {
                     group.links.map((link, linkIndex) => (
                       <div
                         key={linkIndex}
-                        className={`p-4 rounded-lg border ${link.pageDeleted
+                        className={`p-4 rounded-lg border ${ (link.pageDeleted || !checkPageExists(link.href, link.linkType, content.pages))
                           ? 'border-red-300 bg-red-50'
                           : 'border-gray-200 bg-gray-50'
                           }`}

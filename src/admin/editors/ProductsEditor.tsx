@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, Star, TrendingUp, Calendar, Tag, Layers, ChevronDown, ChevronUp, Loader2, ShieldAlert, ClipboardList, Palette, MoveRight } from 'lucide-react';
+import { Plus, Trash2, Save, Star, TrendingUp, Calendar, Tag, Layers, ChevronDown, ChevronUp, Loader2, ClipboardList, Palette, } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { useLanguage } from '@/context/LanguageContext';
 import BilingualInput from '@/admin/components/BilingualInput';

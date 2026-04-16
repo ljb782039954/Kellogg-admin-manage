@@ -1,5 +1,5 @@
 // 链接选择组件 - 支持内部页面链接和外部链接
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AlertTriangle, ExternalLink, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,30 +29,31 @@ interface LinkSelectorProps {
 
 export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
   const { content } = useContent();
-  const [pages, setPages] = useState<PageOption[]>([]);
-  const [pageDeleted, setPageDeleted] = useState(false);
-
-  // 加载页面列表
-  useEffect(() => {
-    // 从 content.pages 中加载所有页面
-    const loadedPages: PageOption[] = content.pages.map(p => ({
+  // 加载页面列表 (派生状态)
+  const pages = useMemo<PageOption[]>(() => {
+    return content.pages.map(p => ({
       pageId: p.id,
       path: p.path,
       title: p.title,
       isFixed: p.isFixed,
     }));
+  }, [content.pages]);
 
-    setPages(loadedPages);
-
-    // 检查当前链接的页面是否已被删除
+  // 检查当前链接的页面是否已被删除 (派生状态)
+  const isPageDeleted = useMemo(() => {
     if (value.linkType === 'internal' && value.href) {
-      const exists = loadedPages.some(p => p.pageId === value.href || p.path === value.href);
-      setPageDeleted(!exists);
-      if (!exists && !value.pageDeleted) {
-        onChange({ ...value, pageDeleted: true });
-      }
+      const exists = pages.some(p => p.pageId === value.href || p.path === value.href);
+      return !exists;
     }
-  }, [value.href, value.linkType, content.pages]);
+    return false;
+  }, [value.href, value.linkType, pages]);
+
+  // 这里的 useEffect 仅用于通知父组件数据模型状态变化，不再同步调用本地 setState
+  useEffect(() => {
+    if (isPageDeleted && !value.pageDeleted) {
+      onChange({ ...value, pageDeleted: true });
+    }
+  }, [isPageDeleted, value.pageDeleted]);
 
   // 更新链接类型
   const handleTypeChange = (type: LinkType) => {
@@ -62,7 +63,6 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
       href: '',
       pageDeleted: false,
     });
-    setPageDeleted(false);
   };
 
   // 更新内部链接
@@ -73,7 +73,6 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
       href: page?.path || pageId,
       pageDeleted: false,
     });
-    setPageDeleted(false);
   };
 
   // 更新外部链接
@@ -119,7 +118,7 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
             value={pages.find((p) => p.path === value.href)?.pageId || value.href || ''}
             onValueChange={handlePageChange}
           >
-            <SelectTrigger className={pageDeleted ? 'border-red-500' : ''}>
+            <SelectTrigger className={isPageDeleted ? 'border-red-500' : ''}>
               <SelectValue placeholder="选择一个页面" />
             </SelectTrigger>
             <SelectContent>
@@ -138,7 +137,7 @@ export default function LinkSelector({ value, onChange }: LinkSelectorProps) {
           </Select>
 
           {/* 页面已删除警告 */}
-          {pageDeleted && (
+          {isPageDeleted && (
             <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded">
               <AlertTriangle className="w-4 h-4" />
               <span>注意：该页面链接可能已失效，请重新选择</span>
