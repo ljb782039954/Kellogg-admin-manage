@@ -31,8 +31,10 @@ export interface Product {
   isFeatured: boolean;
   fabric?: Translation;
   notes?: Translation;
+  isActive: boolean;
   sizes?: { name: string; image?: string }[];
   colors?: { name: Translation; image?: string }[];
+  customFields?: { name: Translation; value: Translation }[];
 }
 
 // 用于 api 接口
@@ -59,7 +61,9 @@ export interface ProductInput {
   notes_en?: string;
   sizes?: { name: string; image?: string }[];
   colors?: { name_zh: string; name_en: string; image?: string }[];
+  custom_fields?: { name_zh: string; name_en: string; value_zh: string; value_en: string }[];
   sort_order?: number;
+  is_active?: boolean;
 }
 
 export interface CategoryInput {
