@@ -117,7 +117,7 @@ export default function ProductsEditor() {
             fabric_en: localProduct.fabric?.en,
             notes_zh: localProduct.notes?.zh,
             notes_en: localProduct.notes?.en,
-            isActive: localProduct.isActive,
+            is_active: localProduct.isActive,
             sizes: localProduct.sizes,
             colors: localProduct.colors?.map(c => ({
               name_zh: c.name.zh,

@@ -1,8 +1,8 @@
-import type { 
-  CategoriesProps, 
-  NewArrivalsProps, 
-  FeaturedProductsProps, 
-  ProductGridProps, 
+import type {
+  CategoriesProps,
+  NewArrivalsProps,
+  FeaturedProductsProps,
+  ProductGridProps,
   Category,
   Product,
   SortOption
@@ -35,6 +35,7 @@ export const products: Product[] = [
     category: 'casual',
     releaseDate: '2024-01-15',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 2,
@@ -47,6 +48,7 @@ export const products: Product[] = [
     category: 'formal',
     releaseDate: '2024-02-01',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 3,
@@ -59,6 +61,7 @@ export const products: Product[] = [
     category: 'dresses',
     releaseDate: '2024-02-15',
     isFeatured: false,
+    isActive: true,
   },
   {
     id: 4,
@@ -72,6 +75,7 @@ export const products: Product[] = [
     category: 'sportswear',
     releaseDate: '2024-01-25',
     isFeatured: false,
+    isActive: true,
   },
   {
     id: 5,
@@ -84,6 +88,7 @@ export const products: Product[] = [
     category: 'underwear',
     releaseDate: '2024-03-15',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 6,
@@ -97,6 +102,7 @@ export const products: Product[] = [
     category: 'formal',
     releaseDate: '2024-02-20',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 7,
@@ -109,6 +115,7 @@ export const products: Product[] = [
     category: 'dresses',
     releaseDate: '2024-03-05',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 8,
@@ -122,6 +129,7 @@ export const products: Product[] = [
     category: 'sportswear',
     releaseDate: '2024-01-25',
     isFeatured: false,
+    isActive: true,
   },
   {
     id: 9,
@@ -134,6 +142,7 @@ export const products: Product[] = [
     category: 'underwear',
     releaseDate: '2024-03-15',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 10,
@@ -146,6 +155,7 @@ export const products: Product[] = [
     category: 'outerwear',
     releaseDate: '2024-03-20',
     isFeatured: true,
+    isActive: true,
   },
   {
     id: 11,
@@ -158,6 +168,7 @@ export const products: Product[] = [
     category: 'casual',
     releaseDate: '2024-02-10',
     isFeatured: false,
+    isActive: true,
   },
   {
     id: 12,
@@ -171,6 +182,7 @@ export const products: Product[] = [
     category: 'casual',
     releaseDate: '2024-01-05',
     isFeatured: false,
+    isActive: true,
   },
 ];
 
