@@ -54,5 +54,10 @@ export interface CustomPage {
   title: Translation;  // 页面名称/标题
   isFixed: boolean;    // 是否为固定系统页面 (不可删除)
   blocks: PageBlock[]; // 存放积木块数组
+  seo?: {
+    title: Translation;
+    description: Translation;
+    keywords?: Translation;
+  };
 }
 

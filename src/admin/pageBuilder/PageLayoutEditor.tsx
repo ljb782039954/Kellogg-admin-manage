@@ -20,6 +20,7 @@ import { useContent } from '@/context/ContentContext';
 import { type CustomPage, type PageBlock } from '@/types';
 import { BlockList } from './BlockList';
 import { BlockPropsEditor } from './BlockPropsEditor';
+import { SEOEditor } from './SEOEditor';
 import { AddBlockDialog } from './AddBlockDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,7 +84,13 @@ export function PageLayoutEditor() {
   const handleSave = useCallback(async () => {
     if (!localPage || !pageId) return;
 
-    await updatePage(pageId, localPage);
+    // 鲁棒性检查：确保保存时包含 SEO 数据，即便原始数据缺失也会补全空对象
+    const finalPageData = {
+      ...localPage,
+      seo: localPage.seo || { title: { zh: '', en: '' }, description: { zh: '', en: '' } }
+    };
+
+    await updatePage(pageId, finalPageData);
     setHasChanges(false);
 
     toast({
@@ -283,6 +290,35 @@ export function PageLayoutEditor() {
                     <p>这是一个固定系统页面，路由路径无法修改。</p>
                   </div>
                 )}
+
+                <div className="pt-4 border-t">
+                  <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-blue-500" />
+                    SEO 设置 (搜索引擎优化)
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-400">SEO 页面标题 (Meta Title)</Label>
+                      <BilingualInput
+                        value={localPage.seo?.title || { zh: '', en: '' }}
+                        onChange={(title) => updateLocalPage({ 
+                          seo: { ...(localPage.seo || { title: {zh:'',en:''}, description: {zh:'',en:''} }), title } 
+                        })}
+                        placeholder={{ zh: '输入在搜索引擎中显示的标题', en: 'Enter SEO Title' }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-400">SEO 页面描述 (Meta Description)</Label>
+                      <BilingualInput
+                        value={localPage.seo?.description || { zh: '', en: '' }}
+                        onChange={(description) => updateLocalPage({ 
+                          seo: { ...(localPage.seo || { title: {zh:'',en:''}, description: {zh:'',en:''} }), description } 
+                        })}
+                        placeholder={{ zh: '输入页面简要描述，吸引用户点击', en: 'Enter SEO Description' }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -306,22 +342,44 @@ export function PageLayoutEditor() {
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧：积木块列表 */}
         <div className="w-80 border-r bg-gray-50/50 flex flex-col">
-          <div className="p-4 flex-1 overflow-y-auto">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+          <div className="p-4 flex-1 overflow-y-auto space-y-4">
+            {/* 固定常驻组件: SEO 设置 */}
+            <div 
+              onClick={() => setSelectedBlockId('__seo__')}
+              className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-3 ${
+                selectedBlockId === '__seo__' 
+                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                  : 'border-transparent bg-white hover:border-gray-200'
+              }`}
             >
-              <BlockList
-                blocks={localPage.blocks}
-                selectedId={selectedBlockId}
-                onSelect={setSelectedBlockId}
-                onToggle={handleToggleBlock}
-                onRemove={handleRemoveBlock}
-                onMoveUp={handleMoveBlockUp}
-                onMoveDown={handleMoveBlockDown}
-              />
-            </DndContext>
+              <div className={`p-2 rounded-lg ${selectedBlockId === '__seo__' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                <Settings className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold">SEO 页面设置</div>
+                <div className="text-[10px] text-gray-400">不可删除 · 全局生效</div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">页面积木块</div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <BlockList
+                  blocks={localPage.blocks}
+                  selectedId={selectedBlockId}
+                  onSelect={setSelectedBlockId}
+                  onToggle={handleToggleBlock}
+                  onRemove={handleRemoveBlock}
+                  onMoveUp={handleMoveBlockUp}
+                  onMoveDown={handleMoveBlockDown}
+                />
+              </DndContext>
+            </div>
+            
             {/* 添加按钮 */}
             <div className="mt-4 border-t pt-4">
               <Button
@@ -339,7 +397,12 @@ export function PageLayoutEditor() {
         {/* 右侧：属性编辑器 */}
         <div className="flex-1 overflow-y-auto bg-white">
           <div className="p-6">
-            {selectedBlock ? (
+            {selectedBlockId === '__seo__' ? (
+              <SEOEditor
+                seo={localPage.seo || { title: { zh: '', en: '' }, description: { zh: '', en: '' } }}
+                onChange={(seo) => updateLocalPage({ seo })}
+              />
+            ) : selectedBlock ? (
               <BlockPropsEditor
                 block={selectedBlock}
                 onUpdate={(content) => handleUpdateBlockProps(selectedBlock.id, content)}
