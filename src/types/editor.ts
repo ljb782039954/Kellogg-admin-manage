@@ -311,19 +311,20 @@ export interface TextSectionPropsEditorProps {
 }
 
 // 视频区块-----------------
-// export interface VideoSectionValues {
-//   videoUrl?: string;
-//   posterImage?: string;
-//   autoPlay?: boolean;
-//   loop?: boolean;
-// }
-// export interface VideoSectionProps {
-//   title?: Translation;
-//   subtitle?: Translation;
-//   values?: VideoSectionValues;
-// }
-// export interface VideoSectionPropsEditorProps {
-//   props: VideoSectionProps;
-//   onUpdate: (props: VideoSectionProps) => void;
-// }
+export interface VideoSectionValues {
+  videoUrl?: string;
+  posterImage?: string;
+  autoPlay?: boolean;
+  loop?: boolean;
+}
+export interface VideoSectionProps {
+  title?: Translation;
+  subtitle?: Translation;
+  videoUrl?: string; // Also support flat structure
+  values?: VideoSectionValues;
+}
+export interface VideoSectionPropsEditorProps {
+  props: VideoSectionProps;
+  onUpdate: (props: VideoSectionProps) => void;
+}
 

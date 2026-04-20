@@ -159,19 +159,24 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       overlay: false,
     },
   },
-  // videoSection: {
-  //   type: 'videoSection',
-  //   name: { zh: '视频区域组件', en: 'Video Section' },
-  //   description: { zh: '带标题的视频展示区', en: 'Video display with title' },
-  //   icon: 'Video',
-  //   category: 'media',
-  //   hasGlobalData: false,
-  //   singleton: false,
-  //   defaultProps: {
-  //     title: { zh: '视频标题', en: 'Video Title' },
-  //     videoUrl: '',
-  //   },
-  // },
+  videoSection: {
+    type: 'videoSection',
+    name: { zh: '视频区域组件', en: 'Video Section' },
+    description: { zh: '带标题的视频展示区', en: 'Video display with title' },
+    icon: 'Video',
+    category: 'media',
+    hasGlobalData: false,
+    singleton: false,
+    defaultProps: {
+      title: { zh: '视频标题', en: 'Video Title' },
+      videoUrl: '',
+      values: {
+        videoUrl: '',
+        autoPlay: false,
+        loop: false
+      }
+    },
+  },
   imageText: {
     type: 'imageText',
     name: { zh: '图文组件', en: 'Image & Text' },
@@ -263,7 +268,7 @@ export const componentsByCategory: Record<ComponentCategory, BlockType[]> = {
   product: ['categories', 'newArrivals', 'featuredProducts', 'productGrid'],
   marketing: ['brandValues', 'statistics', 'testimonials', 'countdown', 'partnerLogos', 'ctaBanner'],
   content: ['faq', 'textSection', 'imageText', 'featureList'],
-  media: ['carousel', 'imageBanner', "imageBannerTag", 'gallery'],
+  media: ['carousel', 'imageBanner', "imageBannerTag", 'gallery', 'videoSection'],
 };
 
 // 分类显示名称

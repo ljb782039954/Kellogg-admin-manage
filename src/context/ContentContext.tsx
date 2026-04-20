@@ -137,11 +137,21 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       ]);
 
       // 3. 组装全局状态
+      const SYSTEM_PAGES: CustomPage[] = [
+        {
+          id: 'system-inquiry',
+          path: '/inquiry',
+          title: { zh: '询盘与联系我们', en: 'Inquiry & Contact' },
+          isFixed: true,
+          blocks: []
+        }
+      ];
+
       setContent({
         companyInfo: siteSettings,
         header: header,
         footer: footer,
-        pages: pages,
+        pages: [...SYSTEM_PAGES, ...pages],
       });
 
       setAllProducts(productsResp.data || []);

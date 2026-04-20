@@ -24,7 +24,7 @@ import { PartnerLogosPropsEditor } from './propsEditors/PartnerLogosPropsEditor'
 import { GalleryPropsEditor } from './propsEditors/GalleryPropsEditor';
 import { FeatureListPropsEditor } from './propsEditors/FeatureListPropsEditor';
 import { CtaBannerPropsEditor } from './propsEditors/CtaBannerPropsEditor';
-// import { VideoSectionPropsEditor } from './propsEditors/VideoSectionPropsEditor';
+import { VideoSectionPropsEditor } from './propsEditors/VideoSectionPropsEditor';
 import { FAQPropsEditor } from './propsEditors/FAQPropsEditor';
 
 interface BlockPropsEditorProps {
@@ -110,8 +110,8 @@ function PropsEditorSwitch({
           <ProductGridPropsEditor props={content as any} onUpdate={onUpdate} />
         </div>
       );
-    // case 'videoSection':
-    //   return <VideoSectionPropsEditor props={content as any} onUpdate={onUpdate} />;
+    case 'videoSection':
+      return <VideoSectionPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'imageText':
       return <ImageTextPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'countdown':

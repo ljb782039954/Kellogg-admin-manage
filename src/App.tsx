@@ -19,6 +19,8 @@ import HeaderEditor from './admin/editors/HeaderEditor';
 import ProductsEditor from './admin/editors/ProductsEditor';
 import CategoriesEditor from './admin/editors/CategoriesEditor';
 import FooterEditor from './admin/editors/FooterEditor';
+import InquiryEditor from './admin/editors/InquiryEditor';
+import InquiryManagement from './admin/InquiryManagement';
 
 function App() {
   return (
@@ -46,7 +48,8 @@ function App() {
 
               <Route path="products" element={<ProductsEditor />} />
               <Route path="categories" element={<CategoriesEditor />} />
-              <Route path="footer" element={<FooterEditor />} />
+              <Route path="inquiries" element={<InquiryManagement />} />
+              <Route path="inquiry-editor" element={<InquiryEditor />} />
               {/* <Route path="account" element={<AccountSettings />} /> */}
             </Route>
           </Routes>

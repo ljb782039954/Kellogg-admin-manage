@@ -5,25 +5,25 @@ import type { Translation } from "./common";
 // 积木块系统 (Block-based System)
 // ============================================
 
-export type BlockType = 
-  | 'carousel' 
-  | 'categories' 
-  | 'newArrivals' 
-  | 'featuredProducts' 
-  | 'productGrid' 
-  | 'brandValues' 
-  | 'statistics' 
-  | 'testimonials' 
-  | 'faq' 
-  | 'textSection' 
-  | 'imageBanner' 
-  | 'imageBannerTag' 
-  // | 'videoSection' 
-  | 'imageText' 
+export type BlockType =
+  | 'carousel'
+  | 'categories'
+  | 'newArrivals'
+  | 'featuredProducts'
+  | 'productGrid'
+  | 'brandValues'
+  | 'statistics'
+  | 'testimonials'
+  | 'faq'
+  | 'textSection'
+  | 'imageBanner'
+  | 'imageBannerTag'
+  | 'videoSection'
+  | 'imageText'
   | 'ctaBanner'
-  | 'countdown' 
-  | 'partnerLogos' 
-  | 'gallery' 
+  | 'countdown'
+  | 'partnerLogos'
+  | 'gallery'
   | 'featureList';
 
 // 组件分类

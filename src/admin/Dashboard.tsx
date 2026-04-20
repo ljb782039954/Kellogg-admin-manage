@@ -12,6 +12,7 @@ import {
   PanelTop,
   PanelBottom,
   Layers,
+  Inbox
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import siteSettings from '../config/siteSettings.json';
@@ -60,6 +61,14 @@ const menuItems: MenuItem[] = [
     children: [
       { path: '/products', name: '产品编辑' },
       { path: '/categories', name: '产品分类' },
+    ],
+  },
+  {
+    name: '询盘管理',
+    icon: Inbox,
+    children: [
+      { path: '/inquiries', name: '询盘列表' },
+      { path: '/inquiry-editor', name: '页面编辑' },
     ],
   },
   // {

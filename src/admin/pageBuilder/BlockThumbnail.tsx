@@ -317,22 +317,22 @@ const thumbnails: Partial<Record<BlockType, React.ReactNode>> = {
   gallery: <GalleryThumbnail />,
   featureList: <FeatureListThumbnail />,
   ctaBanner: <CtaBannerThumbnail />,
-  // videoSection: <VideoThumbnail />,
+  videoSection: <VideoThumbnail />,
   partnerLogos: <PartnerLogosThumbnail />,
 };
 
 // 视频缩略图
-// function VideoThumbnail() {
-//   return (
-//     <div className="w-full h-full p-2">
-//       <div className="w-full h-full bg-gray-800 rounded relative flex items-center justify-center">
-//         <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
-//           <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5" />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+function VideoThumbnail() {
+  return (
+    <div className="w-full h-full p-2">
+      <div className="w-full h-full bg-gray-800 rounded relative flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
+          <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // 合作伙伴缩略图
 function PartnerLogosThumbnail() {

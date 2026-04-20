@@ -38,8 +38,8 @@ async function request<T>(
     ...options.headers,
   };
 
-  // 添加认证 Token（POST/PUT/DELETE 请求）
-  if (ADMIN_TOKEN && options.method && options.method !== 'GET') {
+  // 添加认证 Token
+  if (ADMIN_TOKEN) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${ADMIN_TOKEN}`;
   }
 
@@ -194,6 +194,20 @@ export const api = {
 
   deleteImage: (key: string) =>
     request<{ success: boolean }>(`/api/upload?key=${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+    }),
+
+  // ============================================
+  // 询盘管理
+  // ============================================
+  getInquiries: () => request<PaginatedResponse<any>>('/api/inquiries'),
+  patchInquiry: (id: number, data: { status: string }) =>
+    request<{ success: boolean }>(`/api/inquiries/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteInquiry: (id: number) =>
+    request<{ success: boolean }>(`/api/inquiries/${id}`, {
       method: 'DELETE',
     }),
 };
