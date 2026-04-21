@@ -136,22 +136,11 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         fetchConfig<FooterContent>('footer_config', blankContent.footer),
       ]);
 
-      // 3. 组装全局状态
-      const SYSTEM_PAGES: CustomPage[] = [
-        {
-          id: 'system-inquiry',
-          path: '/inquiry',
-          title: { zh: '询盘与联系我们', en: 'Inquiry & Contact' },
-          isFixed: true,
-          blocks: []
-        }
-      ];
-
       setContent({
         companyInfo: siteSettings,
         header: header,
         footer: footer,
-        pages: [...SYSTEM_PAGES, ...pages],
+        pages: pages, // Directly use pages from KV
       });
 
       setAllProducts(productsResp.data || []);

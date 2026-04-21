@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { type CustomPage } from '@/types';
-import { createEmptyPage } from '@/config/defaultPageSchemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -85,11 +84,24 @@ export function DynamicPagesManager() {
     // 生成唯一 ID
     const pageId = `page_${nanoid(8)}`;
 
-    // 创建新页面
-    const newPage = createEmptyPage(pageId, path, {
-      zh: newPageTitle.zh.trim(),
-      en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
-    });
+    // 创建新页面结构
+    const newPage: CustomPage = {
+      id: pageId,
+      path,
+      title: {
+        zh: newPageTitle.zh.trim(),
+        en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
+      },
+      isFixed: false,
+      blocks: [],
+      seo: {
+        title: {
+          zh: newPageTitle.zh.trim(),
+          en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
+        },
+        description: { zh: '', en: '' },
+      }
+    };
 
     await addPage(newPage);
 
