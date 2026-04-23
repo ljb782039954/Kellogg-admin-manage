@@ -144,6 +144,7 @@ export default function ProductVariantsSection({
         <label className="block text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-1">
           <ClipboardList className="w-3 h-3" /> 自定义参数管理
         </label>
+        <p className="text-sm text-orange-600">文本中使用“；”或者“;”，在前端显示中会自动进行换行。 </p>
         <div className="space-y-4">
           {customFields.map((field, fIdx) => (
             <div key={fIdx} className="bg-gray-50 p-4 rounded-xl relative group/cf">

@@ -9,6 +9,7 @@ import ProductSummary from './product/ProductSummary';
 import ProductMediaSection from './product/ProductMediaSection';
 import ProductInfoSection from './product/ProductInfoSection';
 import ProductVariantsSection from './product/ProductVariantsSection';
+import BulkPriceSection from './product/BulkPriceSection';
 
 import type { Product } from '@/types';
 
@@ -99,6 +100,7 @@ export default function ProductsEditor() {
             name_en: localProduct.name.en,
             price: localProduct.price,
             original_price: localProduct.originalPrice,
+            bulk_prices: localProduct.bulkPrices,
             category_id: localProduct.category,
             rating: localProduct.rating,
             sales: localProduct.sales,
@@ -133,6 +135,7 @@ export default function ProductsEditor() {
             JSON.stringify(localProduct.name) !== JSON.stringify(remoteProduct.name) ||
             localProduct.price !== remoteProduct.price ||
             localProduct.originalPrice !== remoteProduct.originalPrice ||
+            JSON.stringify(localProduct.bulkPrices) !== JSON.stringify(remoteProduct.bulkPrices) ||
             localProduct.category !== remoteProduct.category ||
             localProduct.rating !== remoteProduct.rating ||
             localProduct.sales !== remoteProduct.sales ||
@@ -154,6 +157,7 @@ export default function ProductsEditor() {
               name_en: localProduct.name.en,
               price: localProduct.price,
               original_price: localProduct.originalPrice,
+              bulk_prices: localProduct.bulkPrices,
               category_id: localProduct.category,
               rating: localProduct.rating,
               sales: localProduct.sales,
@@ -202,6 +206,7 @@ export default function ProductsEditor() {
       id: newId,
       name: { zh: '新产品', en: 'New Product' },
       price: 0,
+      bulkPrices: [],
       image: '',
       images: [],
       rating: 5,
@@ -420,10 +425,18 @@ export default function ProductsEditor() {
                           onUpdateField={(field, value) => updateLocalProduct(product.id, field, value)}
                         />
                       </div>
-                      <ProductVariantsSection
-                        product={product}
-                        onUpdateField={(field, value) => updateLocalProduct(product.id, field, value)}
-                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <ProductVariantsSection
+                          product={product}
+                          onUpdateField={(field, value) => updateLocalProduct(product.id, field, value)}
+                        />
+                        <div className="pt-6 border-t border-gray-50">
+                          <BulkPriceSection
+                            bulkPrices={product.bulkPrices || []}
+                            onChange={(prices) => updateLocalProduct(product.id, 'bulkPrices', prices)}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 )}

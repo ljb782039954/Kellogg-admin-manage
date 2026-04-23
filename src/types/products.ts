@@ -15,11 +15,18 @@ export interface SortOption {
   name: Translation;
 }
 
+export interface BulkPrice {
+  minQty: number;
+  maxQty: number | null;
+  price: number;
+}
+
 export interface Product {
   id: number;
   name: Translation;
   price: number;
   originalPrice?: number;
+  bulkPrices?: BulkPrice[];
   image: string;
   images: string[];
   rating: number;
@@ -45,6 +52,7 @@ export interface ProductInput {
   name_en: string;
   price: number;
   original_price?: number;
+  bulk_prices?: BulkPrice[];
   category_id?: string;
   rating?: number;
   sales?: number;
