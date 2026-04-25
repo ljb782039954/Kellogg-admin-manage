@@ -10,6 +10,7 @@ import {
   Lock,
   ExternalLink,
   Search,
+  Copy,
 } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { type CustomPage } from '@/types';
@@ -52,6 +53,7 @@ export function DynamicPagesManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
+  const [duplicateSourcePage, setDuplicateSourcePage] = useState<CustomPage | null>(null);
 
   // 新页面表单状态
   const [newPageTitle, setNewPageTitle] = useState({ zh: '', en: '' });
@@ -93,14 +95,18 @@ export function DynamicPagesManager() {
         en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
       },
       isFixed: false,
-      blocks: [],
-      seo: {
-        title: {
-          zh: newPageTitle.zh.trim(),
-          en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
-        },
-        description: { zh: '', en: '' },
-      }
+      blocks: duplicateSourcePage 
+        ? duplicateSourcePage.blocks.map(b => ({ ...JSON.parse(JSON.stringify(b)), id: `block_${nanoid(8)}` })) 
+        : [],
+      seo: duplicateSourcePage 
+        ? JSON.parse(JSON.stringify(duplicateSourcePage.seo || {})) 
+        : {
+            title: {
+              zh: newPageTitle.zh.trim(),
+              en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
+            },
+            description: { zh: '', en: '' },
+          }
     };
 
     await addPage(newPage);
@@ -108,16 +114,17 @@ export function DynamicPagesManager() {
     // 重置表单
     setNewPageTitle({ zh: '', en: '' });
     setNewPagePath('');
+    setDuplicateSourcePage(null);
     setIsCreateDialogOpen(false);
 
     toast({
-      title: '页面创建成功',
+      title: duplicateSourcePage ? '页面复制成功' : '页面创建成功',
       description: `已创建页面「${newPageTitle.zh}」`,
     });
 
     // 跳转到编辑页面
     navigate(`/pages/${pageId}/edit`);
-  }, [newPageTitle, newPagePath, content.pages, addPage, navigate, toast]);
+  }, [newPageTitle, newPagePath, content.pages, duplicateSourcePage, addPage, navigate, toast]);
 
   // 删除页面
   const handleDeletePage = useCallback(async () => {
@@ -148,6 +155,14 @@ export function DynamicPagesManager() {
     navigate(`/pages/${pageId}/edit`);
   }, [navigate]);
 
+  // 打开复制页面弹窗
+  const handleOpenDuplicateDialog = useCallback((page: CustomPage) => {
+    setDuplicateSourcePage(page);
+    setNewPageTitle({ zh: `${page.title.zh} (副本)`, en: `${page.title.en} (Copy)` });
+    setNewPagePath(`${page.path.replace(/^\//, '')}-copy`);
+    setIsCreateDialogOpen(true);
+  }, []);
+
   // 过滤页面列表
   const filteredPages = useMemo(() => {
     return content.pages.filter((page) => {
@@ -174,7 +189,12 @@ export function DynamicPagesManager() {
             管理网站页面，添加或编辑页面内容和组件
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => {
+          setDuplicateSourcePage(null);
+          setNewPageTitle({ zh: '', en: '' });
+          setNewPagePath('');
+          setIsCreateDialogOpen(true);
+        }}>
           <Plus className="w-4 h-4 mr-2" />
           创建新页面
         </Button>
@@ -206,6 +226,7 @@ export function DynamicPagesManager() {
               key={page.id}
               page={page}
               onEdit={() => handleEditPage(page.id)}
+              onDuplicate={() => handleOpenDuplicateDialog(page)}
               onDelete={() => { }} // 禁止删除固定页面
             />
           ))}
@@ -228,6 +249,7 @@ export function DynamicPagesManager() {
                 key={page.id}
                 page={page}
                 onEdit={() => handleEditPage(page.id)}
+                onDuplicate={() => handleOpenDuplicateDialog(page)}
                 onDelete={() => setDeletePageId(page.id)}
               />
             ))}
@@ -243,13 +265,18 @@ export function DynamicPagesManager() {
         )}
       </div>
 
-      {/* 创建页面弹窗 */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      {/* 创建/复制页面弹窗 */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+        if (!open) setDuplicateSourcePage(null);
+        setIsCreateDialogOpen(open);
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>创建新页面</DialogTitle>
+            <DialogTitle>{duplicateSourcePage ? '复制页面' : '创建新页面'}</DialogTitle>
             <DialogDescription>
-              创建一个新的自定义页面，您可以在页面中添加各种积木块组件
+              {duplicateSourcePage 
+                ? `正在复制页面「${duplicateSourcePage.title.zh}」的布局和 SEO 设置。请设置新页面的标题和路径。` 
+                : '创建一个新的自定义页面，您可以在页面中添加各种积木块组件'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -278,10 +305,13 @@ export function DynamicPagesManager() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setDuplicateSourcePage(null);
+              setIsCreateDialogOpen(false);
+            }}>
               取消
             </Button>
-            <Button onClick={handleCreatePage}>创建页面</Button>
+            <Button onClick={handleCreatePage}>{duplicateSourcePage ? '确认复制' : '创建页面'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -311,10 +341,11 @@ export function DynamicPagesManager() {
 interface PageCardProps {
   page: CustomPage;
   onEdit: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }
 
-function PageCard({ page, onEdit, onDelete }: PageCardProps) {
+function PageCard({ page, onEdit, onDuplicate, onDelete }: PageCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
@@ -346,11 +377,15 @@ function PageCard({ page, onEdit, onDelete }: PageCardProps) {
             <Edit className="w-4 h-4 mr-1" />
             编辑
           </Button>
+          <Button variant="outline" size="sm" className="flex-1" onClick={onDuplicate}>
+            <Copy className="w-4 h-4 mr-1" />
+            复制
+          </Button>
           {!page.isFixed && (
             <Button
               variant="outline"
               size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
               onClick={onDelete}
             >
               <Trash2 className="w-4 h-4" />

@@ -9,6 +9,7 @@ interface SEOEditorProps {
     title: Translation;
     description: Translation;
     keywords?: Translation;
+    targetCountry?: string;
   };
   onChange: (seo: any) => void;
 }
@@ -68,6 +69,33 @@ export function SEOEditor({ seo, onChange }: SEOEditorProps) {
             placeholder={{ zh: '输入页面简要描述，吸引用户点击', en: 'Enter SEO Description' }}
           />
           <p className="text-[10px] text-gray-400">详细描述页面内容，建议 150 个字符左右</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">核心关键词 (Keywords)</Label>
+            </div>
+            <BilingualInput
+              value={seo.keywords || { zh: '', en: '' }}
+              onChange={(keywords) => onChange({ ...seo, keywords })}
+              placeholder={{ zh: '如: 重磅卫衣, 街头服饰', en: 'e.g. Heavyweight Hoodie, Streetwear' }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">GEO 目标市场 (Target Country)</Label>
+            </div>
+            <input
+              type="text"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={seo.targetCountry || ''}
+              onChange={(e) => onChange({ ...seo, targetCountry: e.target.value })}
+              placeholder="如: USA, UK, Europe, Australia"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">用于填充 JSON-LD 的 areaServed，提高地区检索排名</p>
+          </div>
         </div>
       </div>
 

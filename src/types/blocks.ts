@@ -58,6 +58,7 @@ export interface CustomPage {
     title: Translation;
     description: Translation;
     keywords?: Translation;
+    targetCountry?: string; // 用于 GEO 优化，例如 "USA", "UK"
   };
 }
 
