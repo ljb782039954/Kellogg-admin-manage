@@ -9,6 +9,7 @@ import ProductSummary from './product/ProductSummary';
 import ProductMediaSection from './product/ProductMediaSection';
 import ProductInfoSection from './product/ProductInfoSection';
 import ProductVariantsSection from './product/ProductVariantsSection';
+import ProductCustomFields from './product/ProductCustomFields';
 import BulkPriceSection from './product/BulkPriceSection';
 
 import type { Product } from '@/types';
@@ -427,6 +428,10 @@ export default function ProductsEditor() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <ProductVariantsSection
+                          product={product}
+                          onUpdateField={(field, value) => updateLocalProduct(product.id, field, value)}
+                        />
+                        <ProductCustomFields
                           product={product}
                           onUpdateField={(field, value) => updateLocalProduct(product.id, field, value)}
                         />
