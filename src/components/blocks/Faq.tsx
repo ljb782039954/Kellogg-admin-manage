@@ -4,17 +4,30 @@ import { ChevronDown, } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MotionHeader from '../custom/motionHeader';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { FAQProps } from '@/types';
+import type { Translation } from '@/types';
+
+export interface FAQItem {
+  id: number;
+  question: Translation;
+  answer: Translation;
+}
+
+export interface FAQProps {
+  title?: Translation;
+  subtitle?: Translation;
+  items?: FAQItem[];
+}
 
 interface Props {
   t: (obj: { zh: string; en: string }) => string;
   props: FAQProps;
 }
 
-export function Faq({ t, props }: Props) {
+export default function Faq({ t, props }: Props) {
   const { title, subtitle, items } = props;
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+
 
   const hasMore = items.length > 5;
   const displayedItems = isExpanded ? items : items.slice(0, 5);
@@ -22,11 +35,13 @@ export function Faq({ t, props }: Props) {
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
   // 如果没有数据，直接返回null
-  if (items.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
   return (
-    <div className="py-8">
-      <MotionHeader t={t} title={title} subtitle={subtitle} />
+    <section className="py-8">
+      <div className="container mx-auto px-4">
+        <MotionHeader t={t} title={title} subtitle={subtitle} />
+      </div>
       <div className="max-w-3xl mx-auto space-y-4">
         {
           displayedItems.map((item) => (
@@ -79,6 +94,7 @@ export function Faq({ t, props }: Props) {
           </Button>
         </div>
       )}
-    </div>
+
+    </section>
   );
 }

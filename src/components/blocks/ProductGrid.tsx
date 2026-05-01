@@ -3,7 +3,11 @@ import ProductCard from '../custom/productCard';
 import { Link } from 'react-router-dom';
 import Pagination from '../custom/pagination';
 import { SlidersHorizontal } from 'lucide-react';
-import type { Product, ProductGridProps, Category, SortOption } from '@/types';
+import type { Product, Category, SortOption } from '@/types';
+
+export interface ProductGridProps {
+  itemsPerPage?: number;
+}
 
 interface Props {
   t: (obj: { zh: string; en: string }) => string;
@@ -13,7 +17,7 @@ interface Props {
   products: Product[];
 }
 
-export function ProductGrid({
+export default function ProductGrid({
   t,
   props,
   categories,
@@ -47,6 +51,11 @@ export function ProductGrid({
     );
   }
 
+  if (import.meta.env.DEV) {
+    console.log('itemsPerPage:', itemsPerPage);
+    console.log('products数量:', products.length);
+    console.log('filteredProducts数量:', filteredProducts.length);
+  }
 
   // 分页
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -56,11 +65,13 @@ export function ProductGrid({
   );
 
   return (
-    <div className="pt-20">
-      {/* Filters */}
-      <div className="border-b border-gray-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <section className="pt-20 w-full">
+      <div className="container mx-auto px-4">
+        {/* Filters */}
+        <div className="w-full border-b border-gray-200">
+
+          <div className="flex flex-col md:flex-row 
+          md:items-center md:justify-between gap-4 py-4">
             {/* Categories */}
             <div className="flex flex-wrap gap-2">
               <button
@@ -111,43 +122,44 @@ export function ProductGrid({
               </select>
             </div>
           </div>
+
+        </div>
+
+        {/* Products Grid */}
+        <div className="py-12">
+          {paginatedProducts.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-500">
+                {t({ zh: '暂无商品', en: 'No products available' })}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+                {paginatedProducts.map((product, index) => (
+                  <Link
+                    key={product.id}
+                    to={`/product/${product.id}`}
+                    className="block group"
+                  >
+                    <ProductCard t={t} product={product} index={index} />
+                  </Link>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalCount={filteredProducts.length}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
-
-      {/* Products Grid */}
-      <div className="container mx-auto px-4 py-12">
-        {paginatedProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500">
-              {t({ zh: '暂无商品', en: 'No products available' })}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {paginatedProducts.map((product, index) => (
-                <Link
-                  key={product.id}
-                  to={`/product/${product.id}`}
-                  className="block group"
-                >
-                  <ProductCard t={t} product={product} index={index} />
-                </Link>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                totalCount={filteredProducts.length}
-              />
-            )}
-          </>
-        )}
-      </div>
-    </div>
+    </section>
   );
 }

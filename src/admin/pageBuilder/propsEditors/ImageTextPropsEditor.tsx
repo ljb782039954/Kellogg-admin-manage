@@ -10,7 +10,12 @@ import {
 } from '@/components/ui/select';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import type { ImageTextPropsEditorProps } from '@/types/editor';
+import type { ImageTextProps } from '@/components/blocks/ImageText';
+
+export interface ImageTextPropsEditorProps {
+  props: ImageTextProps;
+  onUpdate: (props: ImageTextProps) => void;
+}
 
 export function ImageTextPropsEditor({ props, onUpdate }: ImageTextPropsEditorProps) {
   return (

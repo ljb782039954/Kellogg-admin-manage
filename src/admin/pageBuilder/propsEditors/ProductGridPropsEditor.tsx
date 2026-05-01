@@ -1,7 +1,12 @@
 // 产品网格属性编辑器
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import type { ProductGridPropsEditorProps } from '@/types';
+import type { ProductGridProps } from '@/components/blocks/ProductGrid';
+
+export interface ProductGridPropsEditorProps {
+  props: ProductGridProps;
+  onUpdate: (props: ProductGridProps) => void;
+}
 
 export function ProductGridPropsEditor({ props, onUpdate }: ProductGridPropsEditorProps) {
 

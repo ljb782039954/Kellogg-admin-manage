@@ -2,7 +2,12 @@
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import type { ImageBannerTagPropsEditorProps } from '@/types';
+import type { ImageBannerTagProps } from '@/components/blocks/ImageBannerTag';
+
+export interface ImageBannerTagPropsEditorProps {
+  props: ImageBannerTagProps;
+  onUpdate: (props: ImageBannerTagProps) => void;
+}
 
 export function ImageBannerTagPropsEditor({ props, onUpdate }: ImageBannerTagPropsEditorProps) {
   const handleChange = (key: string, value: unknown) => {

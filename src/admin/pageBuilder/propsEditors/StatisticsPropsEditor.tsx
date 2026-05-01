@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { Statistic, StatisticsPropsEditorProps } from '@/types';
+import type { Statistic, StatisticProps } from '@/components/blocks/Statistics';
+
+export interface StatisticsPropsEditorProps {
+  props: StatisticProps;
+  onUpdate: (props: StatisticProps) => void;
+}
 
 
 export function StatisticsPropsEditor({ props, onUpdate }: StatisticsPropsEditorProps) {

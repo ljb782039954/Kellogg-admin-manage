@@ -5,7 +5,12 @@ import { Switch } from '@/components/ui/switch';
 import { Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getPreviewUrl } from '@/lib/utils';
-import type { CategoriesPropsEditorProps } from '@/types';
+import type { CategoriesProps } from '@/components/blocks/Categories';
+
+export interface CategoriesPropsEditorProps {
+  props: CategoriesProps;
+  onUpdate: (props: CategoriesProps) => void;
+}
 
 
 export function CategoriesPropsEditor({ props, onUpdate }: CategoriesPropsEditorProps) {

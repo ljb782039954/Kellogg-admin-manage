@@ -1,7 +1,7 @@
 export * from "./blocks";
 export * from "./common";
 export * from "./products";
-export * from "./editor";
+// export * from "./editor";
 export * from "./baseEditor";
 
 import type { CompanyInfo, HeaderContent, FooterContent } from "./baseEditor";

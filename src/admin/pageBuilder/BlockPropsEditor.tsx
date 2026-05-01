@@ -6,6 +6,7 @@ import * as LucideIcons from 'lucide-react';
 // 组件基础编辑器
 import { TextSectionPropsEditor } from './propsEditors/TextSectionPropsEditor';
 import { ImageBannerPropsEditor } from './propsEditors/ImageBannerPropsEditor';
+import { ImageFullPropsEditor } from './propsEditors/ImageFullPropsEditor';
 import { ImageBannerTagPropsEditor } from './propsEditors/ImageBannerTagPropsEditor';
 import { ProductGridPropsEditor } from './propsEditors/ProductGridPropsEditor';
 import { LayoutPropsEditor } from './propsEditors/LayoutPropsEditor';
@@ -101,6 +102,8 @@ function PropsEditorSwitch({
       return <TextSectionPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'imageBanner':
       return <ImageBannerPropsEditor props={content as any} onUpdate={onUpdate} />;
+    case 'imageFull':
+      return <ImageFullPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'imageBannerTag':
       return <ImageBannerTagPropsEditor props={content as any} onUpdate={onUpdate} />;
     case 'productGrid':

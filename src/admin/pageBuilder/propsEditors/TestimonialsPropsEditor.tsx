@@ -7,7 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import { type Testimonial, type TestimonialsPropsEditorProps } from '@/types';
+import type { Testimonial, TestimonialProps } from '@/components/blocks/Testimonials';
+
+export interface TestimonialsPropsEditorProps {
+  props: TestimonialProps;
+  onUpdate: (props: TestimonialProps) => void;
+}
 
 
 export function TestimonialsPropsEditor({ props, onUpdate }: TestimonialsPropsEditorProps) {

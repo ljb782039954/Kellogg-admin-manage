@@ -33,21 +33,27 @@ export default function ImageInput({
     setError(null);
 
     try {
+      console.log('Starting upload for file:', file.name);
       // 尝试上传到 API
       const result = await uploadImage(file);
+      console.log('Upload success, URL:', result.url);
       onChange(result.url);
     } catch (err) {
+      console.error('Upload failed:', err);
       // 如果 API 上传失败，回退到 base64（用于离线或本地测试）
       console.warn('API upload failed, falling back to base64:', err);
       const reader = new FileReader();
       reader.onloadend = () => {
+        console.log('Base64 conversion success');
         onChange(reader.result as string);
       };
       reader.onerror = () => {
+        console.error('FileReader error');
         setError('图片读取失败');
       };
       reader.readAsDataURL(file);
     } finally {
+      console.log('Setting isUploading to false');
       setIsUploading(false);
     }
   };

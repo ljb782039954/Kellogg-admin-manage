@@ -12,8 +12,20 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import BilingualInput from '@/admin/components/BilingualInput';
-import { commonFeatureIcons } from '@/types/editor';
-import type { FeatureListPropsEditorProps } from '@/types/editor';
+// import { commonFeatureIcons } from '@/types/editor';
+import type { FeatureListProps } from '@/components/blocks/FeatureList';
+
+const commonFeatureIcons = [
+  'Truck', 'RotateCcw', 'Shield', 'Headphones', 'CreditCard', 'Gift',
+  'Star', 'Heart', 'Check', 'Award', 'Zap', 'Clock',
+  'ThumbsUp', 'Lock', 'Globe', 'Users', 'Package', 'Sparkles',
+];
+
+
+export interface FeatureListPropsEditorProps {
+  props: FeatureListProps;
+  onUpdate: (props: FeatureListProps) => void;
+}
 
 export function FeatureListPropsEditor({ props, onUpdate }: FeatureListPropsEditorProps) {
   const items = props.items || [];

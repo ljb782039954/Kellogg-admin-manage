@@ -3,7 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import BilingualInput from '../../components/BilingualInput';
 import ImageInput from '../../components/ImageInput';
-import type { VideoSectionPropsEditorProps } from '@/types';
+import type { VideoSectionProps } from '@/components/blocks/VideoSection';
+
+export interface VideoSectionPropsEditorProps {
+  props: VideoSectionProps;
+  onUpdate: (props: VideoSectionProps) => void;
+}
+
 
 export function VideoSectionPropsEditor({ props, onUpdate }: VideoSectionPropsEditorProps) {
   const handleChange = (key: string, value: unknown) => {

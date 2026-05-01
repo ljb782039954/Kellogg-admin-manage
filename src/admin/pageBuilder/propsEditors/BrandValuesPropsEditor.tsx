@@ -4,8 +4,24 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { BrandValue, BrandValuesPropsEditorProps, } from '@/types';
-import { iconOptions } from '@/types';
+import type { BrandValue, BrandValuesProps } from '@/components/blocks/BrandValues';
+// import { iconOptions } from '@/types';
+
+export interface BrandValuesPropsEditorProps {
+  props: BrandValuesProps;
+  onUpdate: (props: BrandValuesProps) => void;
+}
+
+const iconOptions = [
+  { value: 'Leaf', label: '🌿 环保 (Eco)' },
+  { value: 'Heart', label: '❤️ 爱心 (Quality)' },
+  { value: 'Star', label: '⭐ 星星 (Expert)' },
+  { value: 'Shield', label: '🛡️ 盾牌 (Safe)' },
+  { value: 'Award', label: '🏆 奖杯 (Award)' },
+  { value: 'Users', label: '👥 用户 (Partner)' },
+  { value: 'Globe', label: '🌍 地球 (Global)' },
+  { value: 'Zap', label: '⚡ 闪电 (Fast)' },
+];
 
 
 export function BrandValuesPropsEditor({ props, onUpdate }: BrandValuesPropsEditorProps) {

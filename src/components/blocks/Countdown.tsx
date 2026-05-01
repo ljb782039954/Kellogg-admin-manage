@@ -1,13 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import MotionHeaderDark from '../custom/motionHeaderDark';
-import type { CountdownProps } from '@/types';
+import type { Translation } from '@/types';
+
+export interface CountdownValues {
+  endTime?: string;
+  backgroundImage?: string;
+}
+
+export interface CountdownProps {
+  title?: Translation;
+  subtitle?: Translation;
+  values?: CountdownValues;
+}
 
 interface Props {
   t: (obj: { zh: string; en: string }) => string;
   props: CountdownProps;
 }
 
-export function Countdown({ t, props }: Props) {
+export default function Countdown({ t, props }: Props) {
   const { title, subtitle, values } = props;
   const calculateTimeLeft = useCallback(() => {
     const difference = +new Date(values?.endTime) - +new Date();

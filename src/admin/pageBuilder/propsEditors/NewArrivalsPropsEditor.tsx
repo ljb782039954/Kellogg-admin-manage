@@ -13,7 +13,13 @@ import { Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import BilingualInput from '@/admin/components/BilingualInput';
 import { getPreviewUrl } from '@/lib/utils';
-import type { NewArrivalsPropsEditorProps } from '@/types/editor';
+import type { NewArrivalsProps } from '@/components/blocks/NewArrivals';
+
+export interface NewArrivalsPropsEditorProps {
+  props: NewArrivalsProps;
+  onUpdate: (props: NewArrivalsProps) => void;
+}
+
 
 export function NewArrivalsPropsEditor({ props, onUpdate }: NewArrivalsPropsEditorProps) {
   const { allProducts } = useContent();

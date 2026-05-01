@@ -1,7 +1,14 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
-import type { ImageBannerTagProps } from '@/types';
+import type { Translation } from '@/types';
+
+export interface ImageBannerTagProps {
+  image?: string;
+  tag?: Translation;
+  title?: Translation;
+  subtitle?: Translation;
+}
 
 interface Props {
     t: (obj: { zh: string; en: string }) => string;
@@ -9,7 +16,7 @@ interface Props {
 }
 
 
-export function ImageBannerTag({ t, props }: Props) {
+export default function ImageBannerTag({ t, props }: Props) {
     const { tag, title, subtitle, image } = props;
     const bgImage = useMemo(() => {
         return `url('${image}')`;

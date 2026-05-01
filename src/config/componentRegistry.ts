@@ -131,6 +131,23 @@ export const componentRegistry: Record<BlockType, ComponentMeta> = {
       paddingY: 'medium',
     },
   },
+  imageFull: {
+    type: 'imageFull',
+    name: { zh: '单张大图组件', en: 'Full Image' },
+    description: { zh: '展示单张大图，支持点击全屏查看', en: 'Display a single image with full-screen view' },
+    icon: 'Maximize',
+    category: 'media',
+    hasGlobalData: false,
+    singleton: false,
+    defaultProps: {
+      image: '',
+      height: 'medium',
+      overlay: false,
+      description: { zh: '', en: '' },
+      width: 'full',
+      alt: { zh: '', en: '' }
+    },
+  },
   imageBanner: {
     type: 'imageBanner',
     name: { zh: '图片横幅组件', en: 'Image Banner' },
@@ -268,7 +285,7 @@ export const componentsByCategory: Record<ComponentCategory, BlockType[]> = {
   product: ['categories', 'newArrivals', 'featuredProducts', 'productGrid'],
   marketing: ['brandValues', 'statistics', 'testimonials', 'countdown', 'partnerLogos', 'ctaBanner'],
   content: ['faq', 'textSection', 'imageText', 'featureList'],
-  media: ['carousel', 'imageBanner', "imageBannerTag", 'gallery', 'videoSection'],
+  media: ['carousel', 'imageFull', 'imageBanner', "imageBannerTag", 'gallery', 'videoSection'],
 };
 
 // 分类显示名称

@@ -1,7 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { CarouselProps } from '@/types';
+import type { Translation, NavLink } from '@/types';
+
+export interface CarouselValues {
+  id: number;
+  image: string;
+  title: Translation;
+  subtitle?: Translation;
+  cta?: Translation;
+  link: NavLink;
+}
+
+export interface CarouselProps {
+  autoPlay?: boolean;
+  interval?: number;
+  items?: CarouselValues[];
+}
 
 interface Props {
   t: (obj: { zh: string; en: string }) => string;
@@ -25,7 +40,7 @@ const slideVariants = {
   }),
 };
 
-export function Carousel({ t, props }: Props) {
+export default function Carousel({ t, props }: Props) {
   const { items, autoPlay = true, interval } = props;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -50,7 +65,7 @@ export function Carousel({ t, props }: Props) {
   }, [nextSlide, autoPlay, interval, items.length]);
 
   // 如果没有数据，直接返回null
-  if (items.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
   const slide = items[currentIndex];
   if (!slide) return null;

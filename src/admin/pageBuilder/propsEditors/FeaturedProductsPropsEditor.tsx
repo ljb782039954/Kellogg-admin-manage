@@ -13,7 +13,12 @@ import { Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import BilingualInput from '@/admin/components/BilingualInput';
 import { getPreviewUrl } from '@/lib/utils';
-import type { FeaturedProductsPropsEditorProps } from '@/types';
+import type { FeaturedProductsProps } from '@/components/blocks/FeaturedProducts';
+
+export interface FeaturedProductsPropsEditorProps {
+  props: FeaturedProductsProps;
+  onUpdate: (props: FeaturedProductsProps) => void;
+}
 
 
 export function FeaturedProductsPropsEditor({ props, onUpdate }: FeaturedProductsPropsEditorProps) {

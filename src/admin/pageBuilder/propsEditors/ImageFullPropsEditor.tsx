@@ -1,6 +1,5 @@
-// 图片横幅属性编辑器
+// 单张大图属性编辑器
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -11,15 +10,15 @@ import {
 } from '@/components/ui/select';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import type { ImageBannerProps } from '@/components/blocks/ImageBanner';
+import type { ImageFullProps } from '@/components/blocks/ImageFull';
 
-export interface ImageBannerPropsEditorProps {
-  props: ImageBannerProps;
-  onUpdate: (props: ImageBannerProps) => void;
+export interface ImageFullPropsEditorProps {
+  props: ImageFullProps;
+  onUpdate: (props: ImageFullProps) => void;
 }
 
 
-export function ImageBannerPropsEditor({ props, onUpdate }: ImageBannerPropsEditorProps) {
+export function ImageFullPropsEditor({ props, onUpdate }: ImageFullPropsEditorProps) {
   const handleChange = (key: string, value: unknown) => {
     onUpdate({ ...props, [key]: value });
   };
@@ -28,52 +27,56 @@ export function ImageBannerPropsEditor({ props, onUpdate }: ImageBannerPropsEdit
     <div className="space-y-6">
       {/* 图片 */}
       <div className="space-y-2">
-        <Label>横幅图片</Label>
+        <Label>单张大图片</Label>
         <ImageInput
           value={props.image || ''}
           onChange={(value) => handleChange('image', value)}
         />
       </div>
-
-      {/* 标题（可选） */}
+      {/* 输入图片alt参数 */}
       <div className="space-y-2">
-        <Label>标题（可选）</Label>
+        <Label>图片alt</Label>
         <BilingualInput
-          value={props.title || { zh: '', en: '' }}
-          onChange={(value) => handleChange('title', value)}
-          placeholder={{ zh: '请输入中文标题', en: 'Enter English title' }}
+          value={props.alt || { zh: '', en: '' }}
+          onChange={(value) => handleChange('alt', value)}
+          placeholder={{ zh: '请输入中文alt', en: 'Enter English alt' }}
         />
       </div>
 
-      {/* 副标题（可选） */}
+      {/* 描述文字 */}
       <div className="space-y-2">
-        <Label>副标题（可选）</Label>
+        <Label>描述文字 (显示在遮罩上)</Label>
         <BilingualInput
-          value={props.subtitle || { zh: '', en: '' }}
-          onChange={(value) => handleChange('subtitle', value)}
-          placeholder={{ zh: '请输入中文副标题', en: 'Enter English subtitle' }}
+          value={props.description || { zh: '', en: '' }}
+          onChange={(value) => handleChange('description', value)}
+          placeholder={{ zh: '请输入描述文字', en: 'Enter description text' }}
         />
       </div>
 
-      {/* 链接 */}
+      {/* 宽度 */}
       <div className="space-y-2">
-        <Label>按钮文字</Label>
-        <BilingualInput
-          value={props.buttonText || { zh: '', en: '' }}
-          onChange={(value) => handleChange('ctaText', value)}
-          placeholder={{ zh: '请输入中文按钮文字', en: 'Enter English button text' }}
-        />
-        <Label>点击链接 (URL)</Label>
-        <Input
-          value={props.linkUrl || ''}
-          onChange={(e) => handleChange('linkUrl', e.target.value)}
-          placeholder="https://example.com/page"
-        />
+        <Label>组件宽度</Label>
+        <Select
+          value={props.width || 'full'}
+          onValueChange={(value) =>
+            handleChange('width', value)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="small">小 (Small - 600px)</SelectItem>
+            <SelectItem value="medium">中 (Medium - 800px)</SelectItem>
+            <SelectItem value="large">大 (Large - 1000px)</SelectItem>
+            <SelectItem value="full">全宽 (Full Width)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 高度 */}
       <div className="space-y-2">
-        <Label>横幅高度</Label>
+        <Label>单张大图高度</Label>
         <Select
           value={props.height || 'medium'}
           onValueChange={(value) =>

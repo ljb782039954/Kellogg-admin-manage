@@ -9,7 +9,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import BilingualInput from '../../components/BilingualInput';
-import type { TextSectionPropsEditorProps } from '@/types';
+import type { TextSectionProps } from '@/components/blocks/TextSection';
+
+export interface TextSectionPropsEditorProps {
+  props: TextSectionProps;
+  onUpdate: (props: TextSectionProps) => void;
+}
 
 export function TextSectionPropsEditor({ props, onUpdate }: TextSectionPropsEditorProps) {
   const handleChange = (key: string, value: unknown) => {

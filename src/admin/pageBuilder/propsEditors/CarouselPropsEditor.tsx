@@ -9,7 +9,13 @@ import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
 import LinkSelector from '@/admin/components/LinkSelector';
 import { ensureNavLink } from '@/lib/linkUtils';
-import type { CarouselValues, CarouselPropsEditorProps } from '@/types';
+import type { CarouselValues,CarouselProps } from '@/components/blocks/Carousel';
+
+export interface CarouselPropsEditorProps {
+  props: CarouselProps;
+  onUpdate: (props: CarouselProps) => void;
+}
+
 
 export function CarouselPropsEditor({ props, onUpdate }: CarouselPropsEditorProps) {
   const [localData, setLocalData] = useState<CarouselValues[]>(props.items || []);

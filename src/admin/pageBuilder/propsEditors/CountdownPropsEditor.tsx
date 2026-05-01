@@ -3,7 +3,12 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { CountdownPropsEditorProps } from '@/types';
+import type { CountdownProps } from '@/components/blocks/Countdown';
+
+export interface CountdownPropsEditorProps {
+  props: CountdownProps;
+  onUpdate: (props: CountdownProps) => void;
+}
 
 
 export function CountdownPropsEditor({ props, onUpdate }: CountdownPropsEditorProps) {

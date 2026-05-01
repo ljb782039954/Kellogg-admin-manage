@@ -1,13 +1,27 @@
 import { cn } from '@/lib/utils';
 import MotionHeaderDark from '../custom/motionHeaderDark';
-import type { CtaBannerProps } from '@/types';
+import type { Translation, NavLink } from '@/types';
+
+export interface CtaBannerValues {
+  primaryButton?: NavLink;
+  secondaryButton?: NavLink;
+  backgroundImage?: string;
+  backgroundColor?: string;
+  alignment?: 'left' | 'center' | 'right';
+}
+
+export interface CtaBannerProps {
+  title?: Translation;
+  subtitle?: Translation;
+  values?: CtaBannerValues;
+}
 
 interface Props {
   t: (obj: { zh: string; en: string }) => string;
   props: CtaBannerProps;
 }
 
-export function CtaBanner({
+export default function CtaBanner({
   t,
   props
 }: Props) {
@@ -19,7 +33,7 @@ export function CtaBanner({
   }[values?.alignment];
 
   const content = (
-    <div className={cn('relative max-w-4xl mx-auto px-6 py-16 flex flex-col', alignClass)}>
+    <div className={cn('relative container mx-auto px-6 py-16 flex flex-col', alignClass)}>
       <MotionHeaderDark t={t} title={title} subtitle={subtitle} />
       <div className="flex flex-wrap gap-4">
         {values?.primaryButton?.name && (
@@ -43,6 +57,7 @@ export function CtaBanner({
   );
 
   return (
+
     <div className="relative rounded-2xl overflow-hidden text-white my-8 mx-4">
       {values?.backgroundImage ? (
         <>

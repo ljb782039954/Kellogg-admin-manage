@@ -1,12 +1,15 @@
 import type {
-  CategoriesProps,
-  NewArrivalsProps,
-  FeaturedProductsProps,
-  ProductGridProps,
   Category,
   Product,
   SortOption
 } from '@/types';
+
+import type {
+  CategoriesProps,
+  NewArrivalsProps,
+  FeaturedProductsProps,
+  ProductGridProps,
+} from '@/components/blocks';
 
 // ============================================
 // 基础共享数据，这个是用于预览组件样式的数据，不可删除。

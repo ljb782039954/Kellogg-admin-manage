@@ -11,7 +11,12 @@ import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
 import LinkSelector from '@/admin/components/LinkSelector';
 import { ensureNavLink } from '@/lib/linkUtils';
-import type { CtaBannerPropsEditorProps } from '@/types';
+import type { CtaBannerProps } from '@/components/blocks/CtaBanner';
+
+export interface CtaBannerPropsEditorProps {
+  props: CtaBannerProps;
+  onUpdate: (props: CtaBannerProps) => void;
+}
 
 
 export function CtaBannerPropsEditor({ props, onUpdate }: CtaBannerPropsEditorProps) {

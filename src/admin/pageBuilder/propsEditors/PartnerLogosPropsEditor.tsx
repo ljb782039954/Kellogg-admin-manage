@@ -13,7 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import BilingualInput from '@/admin/components/BilingualInput';
 import ImageInput from '@/admin/components/ImageInput';
-import type { PartnerLogosPropsEditorProps } from '@/types/editor';
+import type { PartnerProps } from '@/components/blocks/PartnerLogos';
+export interface PartnerLogosPropsEditorProps {
+  props: PartnerProps;
+  onUpdate: (props: PartnerProps) => void;
+}
 
 export function PartnerLogosPropsEditor({ props, onUpdate }: PartnerLogosPropsEditorProps) {
   const items = props.items || [];

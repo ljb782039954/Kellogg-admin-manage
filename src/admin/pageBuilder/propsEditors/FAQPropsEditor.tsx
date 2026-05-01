@@ -6,8 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import BilingualInput from '@/admin/components/BilingualInput';
-import type { FAQItem, FAQPropsEditorPropsEditorProps } from '@/types';
+import type { FAQItem, FAQProps } from '@/components/blocks/Faq';
 
+export interface FAQPropsEditorPropsEditorProps {
+  props: FAQProps;
+  onUpdate: (props: FAQProps) => void;
+}
 
 export function FAQPropsEditor({ props, onUpdate }: FAQPropsEditorPropsEditorProps) {
   const [localItems, setLocalItems] = useState<FAQItem[]>(props.items || []);
