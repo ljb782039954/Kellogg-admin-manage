@@ -24,8 +24,6 @@ import { SEOEditor } from './SEOEditor';
 import { PageSettingsEditor } from './PageSettingsEditor';
 import { AddBlockDialog } from './AddBlockDialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -37,7 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import BilingualInput from '../components/BilingualInput';
 
 export function PageLayoutEditor() {
   const navigate = useNavigate();
