@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Search,
   Copy,
+  Settings
 } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { type CustomPage } from '@/types';
@@ -49,11 +50,12 @@ import BilingualInput from '../components/BilingualInput';
 export function DynamicPagesManager() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { content, addPage, deletePage } = useContent();
+  const { content, addPage, deletePage, updatePage } = useContent();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
   const [duplicateSourcePage, setDuplicateSourcePage] = useState<CustomPage | null>(null);
+  const [editPage, setEditPage] = useState<CustomPage | null>(null);
 
   // 新页面表单状态
   const [newPageTitle, setNewPageTitle] = useState({ zh: '', en: '' });
@@ -125,6 +127,61 @@ export function DynamicPagesManager() {
     // 跳转到编辑页面
     navigate(`/pages/${pageId}/edit`);
   }, [newPageTitle, newPagePath, content.pages, duplicateSourcePage, addPage, navigate, toast]);
+
+  // 更新页面设置
+  const handleUpdatePageSettings = useCallback(async () => {
+    if (!editPage) return;
+    if (!newPageTitle.zh.trim() || !newPagePath.trim()) {
+      toast({
+        title: '请填写完整信息',
+        description: '页面标题（中文）和 URL 路径不能为空',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const path = `/${newPagePath.replace(/^\//, '')}`;
+
+    // 检查 path 是否被其他页面占用
+    const pathExists = content.pages.some((p) => p.id !== editPage.id && p.path === path);
+    if (pathExists) {
+      toast({
+        title: 'URL 路径已存在',
+        description: '请使用其他 URL 路径',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const updatedPage = {
+      ...editPage,
+      path,
+      title: {
+        zh: newPageTitle.zh.trim(),
+        en: newPageTitle.en.trim() || newPageTitle.zh.trim(),
+      },
+    };
+
+    await updatePage(editPage.id, updatedPage);
+    
+    setEditPage(null);
+    setIsCreateDialogOpen(false);
+    setNewPageTitle({ zh: '', en: '' });
+    setNewPagePath('');
+
+    toast({
+      title: '设置更新成功',
+      description: `页面「${newPageTitle.zh}」设置已保存`,
+    });
+  }, [editPage, newPageTitle, newPagePath, content.pages, updatePage, toast]);
+
+  // 打开编辑设置弹窗
+  const handleOpenEditDialog = useCallback((page: CustomPage) => {
+    setEditPage(page);
+    setNewPageTitle(page.title);
+    setNewPagePath(page.path.replace(/^\//, ''));
+    setIsCreateDialogOpen(true);
+  }, []);
 
   // 删除页面
   const handleDeletePage = useCallback(async () => {
@@ -226,6 +283,7 @@ export function DynamicPagesManager() {
               key={page.id}
               page={page}
               onEdit={() => handleEditPage(page.id)}
+              onEditSettings={() => handleOpenEditDialog(page)}
               onDuplicate={() => handleOpenDuplicateDialog(page)}
               onDelete={() => { }} // 禁止删除固定页面
             />
@@ -249,6 +307,7 @@ export function DynamicPagesManager() {
                 key={page.id}
                 page={page}
                 onEdit={() => handleEditPage(page.id)}
+                onEditSettings={() => handleOpenEditDialog(page)}
                 onDuplicate={() => handleOpenDuplicateDialog(page)}
                 onDelete={() => setDeletePageId(page.id)}
               />
@@ -272,11 +331,15 @@ export function DynamicPagesManager() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{duplicateSourcePage ? '复制页面' : '创建新页面'}</DialogTitle>
+            <DialogTitle>
+              {editPage ? '编辑页面设置' : duplicateSourcePage ? '复制页面' : '创建新页面'}
+            </DialogTitle>
             <DialogDescription>
-              {duplicateSourcePage 
-                ? `正在复制页面「${duplicateSourcePage.title.zh}」的布局和 SEO 设置。请设置新页面的标题和路径。` 
-                : '创建一个新的自定义页面，您可以在页面中添加各种积木块组件'}
+              {editPage 
+                ? '修改页面的基础信息和访问路径'
+                : duplicateSourcePage 
+                  ? `正在复制页面「${duplicateSourcePage.title.zh}」的布局和 SEO 设置。请设置新页面的标题和路径。` 
+                  : '创建一个新的自定义页面，您可以在页面中添加各种积木块组件'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -307,11 +370,14 @@ export function DynamicPagesManager() {
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setDuplicateSourcePage(null);
+              setEditPage(null);
               setIsCreateDialogOpen(false);
             }}>
               取消
             </Button>
-            <Button onClick={handleCreatePage}>{duplicateSourcePage ? '确认复制' : '创建页面'}</Button>
+            <Button onClick={editPage ? handleUpdatePageSettings : handleCreatePage}>
+              {editPage ? '保存设置' : duplicateSourcePage ? '确认复制' : '创建页面'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -341,17 +407,28 @@ export function DynamicPagesManager() {
 interface PageCardProps {
   page: CustomPage;
   onEdit: () => void;
+  onEditSettings: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
-function PageCard({ page, onEdit, onDuplicate, onDelete }: PageCardProps) {
+function PageCard({ page, onEdit, onEditSettings, onDuplicate, onDelete }: PageCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base truncate">{page.title.zh}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base truncate">{page.title.zh}</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                onClick={onEditSettings}
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </Button>
+            </div>
             {page.title.en && page.title.en !== page.title.zh && (
               <CardDescription className="truncate">{page.title.en}</CardDescription>
             )}

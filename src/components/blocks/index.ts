@@ -28,6 +28,9 @@ export * from './Faq';
 export { default as TextSection } from './TextSection';
 export * from './TextSection';
 
+export { default as ImageFull } from './ImageFull';
+export * from './ImageFull';
+
 export { default as ImageBanner } from './ImageBanner';
 export * from './ImageBanner';
 

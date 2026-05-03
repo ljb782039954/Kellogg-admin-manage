@@ -15,12 +15,13 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { nanoid } from 'nanoid';
-import { Save, Eye, RotateCcw, Plus, ArrowLeft, Settings } from 'lucide-react';
+import { Save, Eye, RotateCcw, Plus, ArrowLeft, Settings, FileText } from 'lucide-react';
 import { useContent } from '@/context/ContentContext';
 import { type CustomPage, type PageBlock } from '@/types';
 import { BlockList } from './BlockList';
 import { BlockPropsEditor } from './BlockPropsEditor';
 import { SEOEditor } from './SEOEditor';
+import { PageSettingsEditor } from './PageSettingsEditor';
 import { AddBlockDialog } from './AddBlockDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,14 +37,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import BilingualInput from '../components/BilingualInput';
 
 export function PageLayoutEditor() {
@@ -58,7 +51,6 @@ export function PageLayoutEditor() {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   // 当 page 加载后，且本地没有数据时，同步到本地状态
@@ -244,85 +236,6 @@ export function PageLayoutEditor() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* 页面设置 */}
-          <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-1" />
-                设置
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>页面设置</SheetTitle>
-                <SheetDescription>
-                  编辑页面的基本信息和路由
-                </SheetDescription>
-              </SheetHeader>
-              <div className="space-y-6 py-6">
-                <div className="space-y-2">
-                  <Label>页面标题</Label>
-                  <BilingualInput
-                    value={localPage.title}
-                    onChange={(title) => updateLocalPage({ title })}
-                    placeholder={{ zh: '请输入中文标题', en: 'Enter English title' }}
-                  />
-                </div>
-                {!localPage.isFixed && (
-                  <div className="space-y-2">
-                    <Label htmlFor="path">URL 路径</Label>
-                    <div className="flex items-center">
-                      <span className="text-gray-500 mr-1">/</span>
-                      <Input
-                        id="path"
-                        value={localPage.path.replace(/^\//, '')}
-                        onChange={(e) => {
-                          const newPath = `/${e.target.value.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}`;
-                          updateLocalPage({ path: newPath });
-                        }}
-                        placeholder="about-us"
-                      />
-                    </div>
-                  </div>
-                )}
-                {localPage.isFixed && (
-                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                    <p>这是一个固定系统页面，路由路径无法修改。</p>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t">
-                  <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-blue-500" />
-                    SEO 设置 (搜索引擎优化)
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-gray-400">SEO 页面标题 (Meta Title)</Label>
-                      <BilingualInput
-                        value={localPage.seo?.title || { zh: '', en: '' }}
-                        onChange={(title) => updateLocalPage({ 
-                          seo: { ...(localPage.seo || { title: {zh:'',en:''}, description: {zh:'',en:''} }), title } 
-                        })}
-                        placeholder={{ zh: '输入在搜索引擎中显示的标题', en: 'Enter SEO Title' }}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-gray-400">SEO 页面描述 (Meta Description)</Label>
-                      <BilingualInput
-                        value={localPage.seo?.description || { zh: '', en: '' }}
-                        onChange={(description) => updateLocalPage({ 
-                          seo: { ...(localPage.seo || { title: {zh:'',en:''}, description: {zh:'',en:''} }), description } 
-                        })}
-                        placeholder={{ zh: '输入页面简要描述，吸引用户点击', en: 'Enter SEO Description' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-
           <Button variant="outline" size="sm" onClick={() => setIsResetDialogOpen(true)}>
             <RotateCcw className="w-4 h-4 mr-1" />
             重置
@@ -343,6 +256,24 @@ export function PageLayoutEditor() {
         {/* 左侧：积木块列表 */}
         <div className="w-80 border-r bg-gray-50/50 flex flex-col">
           <div className="p-4 flex-1 overflow-y-auto space-y-4">
+            {/* 页面基本信息设置 */}
+            <div 
+              onClick={() => setSelectedBlockId('__settings__')}
+              className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-3 ${
+                selectedBlockId === '__settings__' 
+                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                  : 'border-transparent bg-white hover:border-gray-200'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${selectedBlockId === '__settings__' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold">页面基础设置</div>
+                <div className="text-[10px] text-gray-400">标题 · 路径 · 路由</div>
+              </div>
+            </div>
+
             {/* 固定常驻组件: SEO 设置 */}
             <div 
               onClick={() => setSelectedBlockId('__seo__')}
@@ -397,7 +328,14 @@ export function PageLayoutEditor() {
         {/* 右侧：属性编辑器 */}
         <div className="flex-1 overflow-y-auto bg-white">
           <div className="p-6">
-            {selectedBlockId === '__seo__' ? (
+            {selectedBlockId === '__settings__' ? (
+              <PageSettingsEditor
+                title={localPage.title}
+                path={localPage.path}
+                isFixed={localPage.isFixed}
+                onUpdate={(updates) => updateLocalPage(updates)}
+              />
+            ) : selectedBlockId === '__seo__' ? (
               <SEOEditor
                 seo={localPage.seo || { title: { zh: '', en: '' }, description: { zh: '', en: '' } }}
                 onChange={(seo) => updateLocalPage({ seo })}

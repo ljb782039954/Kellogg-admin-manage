@@ -22,6 +22,7 @@ import {
   Testimonials,
   Faq,
   TextSection,
+  ImageFull,
   ImageBanner,
   ImageBannerTag,
   // VideoSection,
@@ -59,6 +60,8 @@ function BlocksPreview({ type }: { type: BlockType }) {
       return <Faq t={t} {...previewData.faqPreview} />;
     case 'textSection':
       return <TextSection t={t} {...previewData.textSectionPreview} />;
+      case 'imageFull':
+      return <ImageFull t={t} {...previewData.imageBannerPreview} />;
     case 'imageBanner':
       return <ImageBanner t={t} {...previewData.imageBannerPreview} />;
     case 'imageBannerTag':
